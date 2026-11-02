@@ -82,10 +82,6 @@ const en = {
   annotationList: {
     noItems: 'No annotations yet. Pan and zoom to a region, then click "Add".',
     noText: "No text",
-    dataSummary: "Data",
-    rectLabel: "rect",
-    imagesLabel: "images",
-    audioLabel: "audio",
     editAria: "Edit annotation",
     deleteAria: "Delete annotation",
     deleteConfirm: "Delete this annotation?",

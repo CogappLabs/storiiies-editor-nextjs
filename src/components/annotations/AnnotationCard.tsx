@@ -107,37 +107,6 @@ const AnnotationCard = ({
                 className="mt-2 w-full h-8"
               />
             ))}
-            <details className="mt-2 text-xs">
-              <summary className="cursor-pointer text-cogapp-gray hover:text-cogapp-charcoal">
-                {strings.dataSummary}
-              </summary>
-              <dl className="mt-1 p-2 bg-cogapp-cream text-cogapp-gray font-mono space-y-1 break-all">
-                <div>
-                  <dt className="inline">{strings.rectLabel}: </dt>
-                  <dd className="inline">
-                    x={Math.round(annotation.x)}, y={Math.round(annotation.y)},
-                    w={Math.round(annotation.width)}, h=
-                    {Math.round(annotation.height)}
-                  </dd>
-                </div>
-                {annotation.images.length > 0 && (
-                  <div>
-                    <dt className="inline">{strings.imagesLabel}: </dt>
-                    <dd className="inline">
-                      {annotation.images.map((img) => img.imageUrl).join(", ")}
-                    </dd>
-                  </div>
-                )}
-                {annotation.audio.length > 0 && (
-                  <div>
-                    <dt className="inline">{strings.audioLabel}: </dt>
-                    <dd className="inline">
-                      {annotation.audio.map((aud) => aud.audioUrl).join(", ")}
-                    </dd>
-                  </div>
-                )}
-              </dl>
-            </details>
           </>
         )}
       </div>
