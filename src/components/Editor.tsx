@@ -2,12 +2,12 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { updateAnnotation } from "@/lib/actions/annotations";
+import { createAnnotation, updateAnnotation } from "@/lib/actions/annotations";
 import { useManifestUrl } from "@/lib/hooks/useManifestUrl";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { AnnotationBounds, Rect, StoryWithAnnotations } from "@/lib/types";
-import AnnotationList from "./AnnotationList";
-import NewAnnotationForm from "./NewAnnotationForm";
+import AnnotationForm from "./annotations/AnnotationForm";
+import AnnotationList from "./annotations/AnnotationList";
 import SharePopup from "./SharePopup";
 import StorySettingsModal from "./StorySettingsModal";
 import { Button, Header } from "./ui";
@@ -167,11 +167,19 @@ const Editor = ({ story }: Props) => {
 
           <div className="flex-1 overflow-y-auto p-2 md:p-4">
             {pendingData && (
-              <NewAnnotationForm
-                storyId={story.id}
-                pendingData={pendingData}
-                onSave={() => setPendingData(null)}
-                onCancel={() => setPendingData(null)}
+              <AnnotationForm
+                className="mb-4 p-3 border-2 border-cogapp-lavender bg-cogapp-lavender/40"
+                onSubmit={(values) =>
+                  createAnnotation(story.id, {
+                    ...values,
+                    ...pendingData.rect,
+                    viewportX: pendingData.viewport.x,
+                    viewportY: pendingData.viewport.y,
+                    viewportWidth: pendingData.viewport.width,
+                    viewportHeight: pendingData.viewport.height,
+                  })
+                }
+                onDone={() => setPendingData(null)}
               />
             )}
 

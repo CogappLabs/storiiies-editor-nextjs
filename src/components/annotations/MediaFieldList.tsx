@@ -5,7 +5,7 @@ import { type Dispatch, type SetStateAction, useRef, useState } from "react";
 import { createMediaField, type MediaField } from "@/lib/form-utils";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import { MAX_MEDIA_SIZE_BYTES, MAX_MEDIA_SIZE_MB } from "@/lib/validation";
-import { Button } from "./ui";
+import { Button } from "../ui";
 
 interface Props {
   kind: "image" | "audio";

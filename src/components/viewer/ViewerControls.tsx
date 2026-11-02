@@ -1,4 +1,5 @@
 import { useStrings } from "@/lib/i18n/LanguageProvider";
+import Icon, { type ICONS } from "../ui/Icon";
 
 interface ViewerControlsProps {
   onZoomIn: () => void;
@@ -8,13 +9,6 @@ interface ViewerControlsProps {
   onToggleCrosshairs?: () => void;
 }
 
-const ICONS = {
-  zoomIn: "M12 4v16m8-8H4",
-  zoomOut: "M20 12H4",
-  home: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
-  crosshairs: "M12 4v4m0 8v4m-8-8h4m8 0h4",
-};
-
 const ViewerControls = ({
   onZoomIn,
   onZoomOut,
@@ -23,12 +17,17 @@ const ViewerControls = ({
   onToggleCrosshairs,
 }: ViewerControlsProps) => {
   const { viewerControls } = useStrings();
-  const buttons = [
-    { icon: ICONS.zoomIn, label: viewerControls.zoomIn, onClick: onZoomIn },
-    { icon: ICONS.zoomOut, label: viewerControls.zoomOut, onClick: onZoomOut },
-    { icon: ICONS.home, label: viewerControls.resetView, onClick: onHome },
+  const buttons: {
+    icon: keyof typeof ICONS;
+    label: string;
+    onClick?: () => void;
+    pressed?: boolean;
+  }[] = [
+    { icon: "zoomIn", label: viewerControls.zoomIn, onClick: onZoomIn },
+    { icon: "zoomOut", label: viewerControls.zoomOut, onClick: onZoomOut },
+    { icon: "home", label: viewerControls.resetView, onClick: onHome },
     {
-      icon: ICONS.crosshairs,
+      icon: "crosshairs",
       label: showCrosshairs
         ? viewerControls.hideCrosshairs
         : viewerControls.showCrosshairs,
@@ -52,18 +51,7 @@ const ViewerControls = ({
               : "bg-white hover:bg-cogapp-cream"
           }`}
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d={icon} />
-          </svg>
+          <Icon name={icon} className="w-5 h-5" />
         </button>
       ))}
     </div>

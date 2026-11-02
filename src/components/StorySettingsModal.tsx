@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import type { Story } from "@/generated/prisma/client";
 import { deleteStory, updateStory } from "@/lib/actions/stories";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
+import StoryFields from "./StoryFields";
 import { Button, Modal } from "./ui";
 
 interface StorySettingsModalProps {
@@ -52,65 +53,7 @@ const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
             {error}
           </p>
         )}
-        <div>
-          <label
-            htmlFor="story-title"
-            className="block text-sm font-medium mb-1"
-          >
-            {strings.storySettings.titleLabel}
-          </label>
-          <input
-            id="story-title"
-            name="title"
-            defaultValue={story.title}
-            ref={titleInputRef}
-            className="w-full px-3 py-2 border rounded"
-            required
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="story-author"
-            className="block text-sm font-medium mb-1"
-          >
-            {strings.storySettings.authorLabel}
-          </label>
-          <input
-            id="story-author"
-            name="author"
-            defaultValue={story.author || ""}
-            className="w-full px-3 py-2 border rounded"
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="story-description"
-            className="block text-sm font-medium mb-1"
-          >
-            {strings.storySettings.descriptionLabel}
-          </label>
-          <textarea
-            id="story-description"
-            name="description"
-            defaultValue={story.description || ""}
-            className="w-full px-3 py-2 border rounded"
-            rows={3}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="story-attribution"
-            className="block text-sm font-medium mb-1"
-          >
-            {strings.storySettings.attributionLabel}
-          </label>
-          <input
-            id="story-attribution"
-            name="attribution"
-            defaultValue={story.attribution || ""}
-            className="w-full px-3 py-2 border rounded"
-          />
-        </div>
+        <StoryFields story={story} titleRef={titleInputRef} />
         <div className="flex justify-between pt-4 border-t">
           <Button variant="danger" onClick={handleDeleteStory}>
             {strings.storySettings.deleteButton}

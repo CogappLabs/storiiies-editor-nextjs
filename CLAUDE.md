@@ -60,23 +60,27 @@ src/
   app/                    # Next.js App Router pages
     api/
       manifest/[id]/      # IIIF manifest generation endpoint (public)
-      images/             # Image upload/list/delete API
+      images/             # IIIF image upload and delete (tiled with sharp)
+      media/              # Blob upload tokens and resizing for annotation media
     editor/[id]/          # Story editor page
     preview/              # Viewer previews (storiiies, clover, mirador, annona)
     admin/                # Admin pages (all stories, uploaded images)
   components/             # React components
     viewer/               # OpenSeadragon viewer, SVG overlay geometry, controls
-    AnnotationList.tsx    # Annotation CRUD with drag-and-drop reorder
-    NewAnnotationForm.tsx # Create annotation form
+    annotations/          # Annotation list, card, shared create/edit form, media fields
     Editor.tsx            # Main editor orchestrator
     CreateStoryForm.tsx   # Story creation with IIIF image validation
-    ui/                   # Shared UI components (Button, Header, Modal)
+    StoryFields.tsx       # Title/author/description/attribution inputs (create + settings)
+    PreviewShell.tsx      # Header and layout shared by the viewer preview pages
+    ui/                   # Shared UI (Button, Header, Modal, Icon, panel/link classes)
   lib/
     actions/              # Server actions: stories.ts, annotations.ts, shared.ts
     queries.ts            # Reads for server components
     blob.ts               # Vercel Blob storage helpers
     iiif.ts               # IIIF tile generation with sharp
     form-utils.ts         # Form field state helpers
+    iiif-manifest.ts      # Parses IIIF manifests into selectable canvases
+    viewers.ts            # The preview viewer list
     i18n/strings.ts       # All UI strings (centralized)
     validation.ts         # URL validation
     prisma.ts             # Prisma client singleton

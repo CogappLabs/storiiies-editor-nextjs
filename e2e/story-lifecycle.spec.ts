@@ -58,7 +58,7 @@ test("create a story from a IIIF image URL", async ({ page }) => {
   await page.getByRole("button", { name: "Validate" }).click();
   await expect(page.getByText(/Valid IIIF image/)).toBeVisible();
 
-  await page.getByLabel("Title *").fill(title);
+  await page.getByLabel("Title").fill(title);
   await page.getByRole("button", { name: /Create Story/ }).click();
 
   await page.waitForURL(/\/editor\/[0-9a-f-]+$/);
