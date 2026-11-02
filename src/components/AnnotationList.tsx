@@ -8,11 +8,6 @@ import {
 } from "@hello-pangea/dnd";
 import Image from "next/image";
 import { useOptimistic, useState, useTransition } from "react";
-import type {
-  Annotation,
-  AnnotationAudio,
-  AnnotationImage,
-} from "@/generated/prisma/client";
 import {
   deleteAnnotation,
   reorderAnnotations,
@@ -22,17 +17,13 @@ import {
 } from "@/lib/actions";
 import type { MediaField } from "@/lib/form-utils";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
+import type { AnnotationWithMedia } from "@/lib/types";
 import MediaFieldList from "./MediaFieldList";
 import { Button } from "./ui";
 
-type AnnotationWithImages = Annotation & {
-  images: AnnotationImage[];
-  audio: AnnotationAudio[];
-};
-
 interface Props {
   storyId: string;
-  annotations: AnnotationWithImages[];
+  annotations: AnnotationWithMedia[];
   selectedId: string | null;
   onSelect: (id: string | null) => void;
 }
@@ -74,7 +65,7 @@ const AnnotationList = ({
     });
   };
 
-  const startEditing = (annotation: AnnotationWithImages) => {
+  const startEditing = (annotation: AnnotationWithMedia) => {
     setEditingId(annotation.id);
     setEditText(annotation.text);
     setEditImageFields(
@@ -317,8 +308,7 @@ const AnnotationList = ({
                                     <span className="text-gray-400">
                                       {strings.annotationList.viewportLabel}:
                                     </span>{" "}
-                                    x={Math.round(annotation.viewportX ?? 0)},
-                                    y=
+                                    x={Math.round(annotation.viewportX)}, y=
                                     {Math.round(annotation.viewportY ?? 0)}, w=
                                     {Math.round(annotation.viewportWidth ?? 0)},
                                     h=

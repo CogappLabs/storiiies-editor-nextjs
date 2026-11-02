@@ -12,6 +12,7 @@ import {
 import type { Annotation } from "@/generated/prisma/client";
 import { VIEWER_CONFIG } from "@/lib/config";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
+import type { AnnotationBounds, Rect } from "@/lib/types";
 
 // Store viewer instances outside React to prevent HMR serialization issues
 const viewerInstances = new WeakMap<
@@ -21,27 +22,12 @@ const viewerInstances = new WeakMap<
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-interface ViewportBounds {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-interface AnnotationData {
-  rect: ViewportBounds;
-  viewport: ViewportBounds;
-}
-
 interface Props {
   imageUrl: string;
   imageWidth: number;
   imageHeight: number;
   annotations: Annotation[];
-  onAnnotationUpdate?: (
-    id: string,
-    coords: { x: number; y: number; width: number; height: number },
-  ) => void;
+  onAnnotationUpdate?: (id: string, coords: Rect) => void;
   onAnnotationSelect?: (id: string | null) => void;
   onReadyChange?: (ready: boolean) => void;
   selectedAnnotationId?: string | null;
@@ -50,7 +36,7 @@ interface Props {
 }
 
 export interface AnnotatedViewerHandle {
-  getViewportBounds: () => AnnotationData | null;
+  getViewportBounds: () => AnnotationBounds | null;
 }
 
 type ResizeHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
@@ -60,7 +46,7 @@ interface DragInfo {
   handle?: ResizeHandle;
   startX: number;
   startY: number;
-  origRect: { x: number; y: number; width: number; height: number };
+  origRect: Rect;
   annotationId: string;
 }
 
@@ -93,10 +79,10 @@ const getHandlePositions = (
 
 const applyResize = (
   handle: ResizeHandle,
-  origRect: { x: number; y: number; width: number; height: number },
+  origRect: Rect,
   dx: number,
   dy: number,
-): { x: number; y: number; width: number; height: number } => {
+): Rect => {
   let { x, y, width, height } = origRect;
   const minSize = 10;
 
@@ -153,8 +139,6 @@ const applyResize = (
     height: Math.round(height),
   };
 };
-
-type Rect = { x: number; y: number; width: number; height: number };
 
 const clampRect = (
   r: Rect,
@@ -288,7 +272,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
     }, []);
 
     useImperativeHandle(ref, () => ({
-      getViewportBounds: (): AnnotationData | null => {
+      getViewportBounds: (): AnnotationBounds | null => {
         const viewer = getViewer();
         if (!viewer || viewer.world.getItemCount() === 0) return null;
 
@@ -441,6 +425,12 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
 
       for (const ann of annotations) {
         const isSelected = ann.id === selectedAnnotationId;
+        const origRect: Rect = {
+          x: ann.x,
+          y: ann.y,
+          width: ann.width,
+          height: ann.height,
+        };
 
         const group = document.createElementNS(SVG_NS, "g");
         group.setAttribute("data-annotation-id", ann.id);
@@ -519,12 +509,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
             type: "move",
             startX: imgPt.x,
             startY: imgPt.y,
-            origRect: {
-              x: ann.x,
-              y: ann.y,
-              width: ann.width,
-              height: ann.height,
-            },
+            origRect,
             annotationId: ann.id,
           };
 
@@ -605,12 +590,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
                 handle: handle as ResizeHandle,
                 startX: imgPt.x,
                 startY: imgPt.y,
-                origRect: {
-                  x: ann.x,
-                  y: ann.y,
-                  width: ann.width,
-                  height: ann.height,
-                },
+                origRect,
                 annotationId: ann.id,
               };
             });

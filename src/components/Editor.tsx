@@ -2,22 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import type {
-  Annotation,
-  AnnotationAudio,
-  AnnotationImage,
-  ImageSource,
-  Story,
-} from "@/generated/prisma/client";
-import { useStrings } from "@/lib/i18n/LanguageProvider";
-import type { AnnotatedViewerHandle } from "./AnnotatedViewer";
-
-type AnnotationWithImages = Annotation & {
-  images: AnnotationImage[];
-  audio: AnnotationAudio[];
-};
-
 import { updateAnnotation } from "@/lib/actions";
+import { useStrings } from "@/lib/i18n/LanguageProvider";
+import type { AnnotationBounds, Rect, StoryWithAnnotations } from "@/lib/types";
+import type { AnnotatedViewerHandle } from "./AnnotatedViewer";
 import AnnotationList from "./AnnotationList";
 import NewAnnotationForm from "./NewAnnotationForm";
 import SharePopup from "./SharePopup";
@@ -35,10 +23,7 @@ const AnnotatedViewer = dynamic(() => import("./AnnotatedViewer"), {
 });
 
 interface Props {
-  story: Story & {
-    imageSource: ImageSource;
-    annotations: AnnotationWithImages[];
-  };
+  story: StoryWithAnnotations;
 }
 
 const Editor = ({ story }: Props) => {
@@ -52,10 +37,7 @@ const Editor = ({ story }: Props) => {
   const [showCrosshairs, setShowCrosshairs] = useState(false);
   // "Add" captures the current view, so it waits for the image to open.
   const [viewerReady, setViewerReady] = useState(false);
-  const [pendingData, setPendingData] = useState<{
-    rect: { x: number; y: number; width: number; height: number };
-    viewport: { x: number; y: number; width: number; height: number };
-  } | null>(null);
+  const [pendingData, setPendingData] = useState<AnnotationBounds | null>(null);
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
@@ -83,10 +65,7 @@ const Editor = ({ story }: Props) => {
     return () => clearTimeout(timer);
   }, [saveStatus]);
 
-  const handleAnnotationUpdate = (
-    id: string,
-    coords: { x: number; y: number; width: number; height: number },
-  ) => {
+  const handleAnnotationUpdate = (id: string, coords: Rect) => {
     const seq = ++saveSeq.current;
     setSaveStatus("saving");
     const save = saveChain.current.then(() =>

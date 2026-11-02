@@ -4,17 +4,13 @@ import { useId, useState, useTransition } from "react";
 import { createAnnotation } from "@/lib/actions";
 import type { MediaField } from "@/lib/form-utils";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
+import type { AnnotationBounds } from "@/lib/types";
 import MediaFieldList from "./MediaFieldList";
 import { Button } from "./ui";
 
-interface PendingData {
-  rect: { x: number; y: number; width: number; height: number };
-  viewport: { x: number; y: number; width: number; height: number };
-}
-
 interface NewAnnotationFormProps {
   storyId: string;
-  pendingData: PendingData;
+  pendingData: AnnotationBounds;
   onSave: () => void;
   onCancel: () => void;
 }
