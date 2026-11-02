@@ -97,10 +97,10 @@ const AnnotationList = ({
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        className={`p-3 border ${
+                        className={`relative p-3 border ${
                           selectedId === annotation.id
                             ? "border-cogapp-lavender bg-cogapp-lavender"
-                            : "border-cogapp-charcoal/20 bg-white"
+                            : "border-cogapp-charcoal/20 bg-white hover:bg-cogapp-cream/50"
                         } ${snapshot.isDragging ? "shadow-lg" : ""} ${
                           isPending ? "opacity-50" : ""
                         }`}

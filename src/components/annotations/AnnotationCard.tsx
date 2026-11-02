@@ -47,7 +47,7 @@ const AnnotationCard = ({
         {...dragHandleProps}
         role="button"
         tabIndex={0}
-        className="mt-1 cursor-grab text-cogapp-gray hover:text-cogapp-charcoal"
+        className="relative z-10 mt-1 cursor-grab text-cogapp-gray hover:text-cogapp-charcoal"
         aria-label={strings.dragHandle}
       >
         <Icon name="drag" />
@@ -70,7 +70,9 @@ const AnnotationCard = ({
               type="button"
               onClick={onSelect}
               aria-pressed={isSelected}
-              className="block w-full text-left"
+              // The ::after overlay stretches the click target over the whole
+              // card; controls sit above it with relative z-10.
+              className="block w-full text-left after:absolute after:inset-0 after:content-['']"
             >
               <span className="block text-xs text-cogapp-gray mb-1">
                 {index + 1}
@@ -104,7 +106,7 @@ const AnnotationCard = ({
                 controls
                 preload="none"
                 src={aud.audioUrl}
-                className="mt-2 w-full h-8"
+                className="relative z-10 mt-2 w-full h-8"
               />
             ))}
           </>
@@ -112,7 +114,7 @@ const AnnotationCard = ({
       </div>
 
       {!isEditing && (
-        <div className="flex gap-1">
+        <div className="relative z-10 flex gap-1">
           <button
             type="button"
             onClick={() => setIsEditing(true)}
