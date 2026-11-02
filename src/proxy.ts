@@ -2,21 +2,12 @@ import { type NextRequest, NextResponse } from "next/server";
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     */
-    "/((?!api|_next/static|_next/image|favicon|sitemap.xml|robots.txt).*)",
+    // Manifests stay public so external IIIF viewers can load them.
+    "/((?!api/manifest|_next/static|_next/image|favicon|sitemap.xml|robots.txt).*)",
   ],
 };
 
 export function proxy(req: NextRequest) {
-  const basicAuth = req.headers.get("authorization");
-  const url = req.nextUrl;
-
   const validUser = process.env.BASIC_AUTH_USER;
   const validPass = process.env.BASIC_AUTH_PASSWORD;
 
@@ -25,16 +16,20 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (basicAuth) {
-    const authValue = basicAuth.split(" ")[1];
-    const [user, pwd] = atob(authValue).split(":");
-
-    if (user === validUser && pwd === validPass) {
-      return NextResponse.next();
+  const [scheme, encoded] = req.headers.get("authorization")?.split(" ") ?? [];
+  if (scheme === "Basic" && encoded) {
+    try {
+      // Compare the whole "user:pass" string so passwords may contain ":".
+      if (atob(encoded) === `${validUser}:${validPass}`) {
+        return NextResponse.next();
+      }
+    } catch {
+      // Malformed base64 falls through to the 401.
     }
   }
 
-  // Redirect to the basic auth route.
-  url.pathname = "/api/basicauth";
-  return NextResponse.rewrite(url);
+  return new NextResponse("Authentication required", {
+    status: 401,
+    headers: { "WWW-Authenticate": 'Basic realm="Secure Area"' },
+  });
 }
