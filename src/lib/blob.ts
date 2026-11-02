@@ -4,7 +4,9 @@ import { del, list, put } from "@vercel/blob";
 import { prisma } from "@/lib/prisma";
 
 const CONTENT_TYPES: Record<string, string> = {
-  ".json": "application/ld+json",
+  // Blob serves only some types inline; application/ld+json downloads instead
+  // of displaying. IIIF accepts plain JSON for info.json.
+  ".json": "application/json",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".png": "image/png",
