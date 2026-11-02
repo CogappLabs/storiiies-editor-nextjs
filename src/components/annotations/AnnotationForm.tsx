@@ -38,6 +38,10 @@ const AnnotationForm = ({
   const [audioFields, setAudioFields] = useState(toFields(initial?.audioUrls));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  // Saving mid-upload would store the row without the file.
+  const [uploads, setUploads] = useState(0);
+  const trackUpload = (uploading: boolean) =>
+    setUploads((n) => n + (uploading ? 1 : -1));
 
   const handleSave = () => {
     setError(null);
@@ -75,12 +79,14 @@ const AnnotationForm = ({
         label={strings.imagesLabel}
         fields={imageFields}
         setFields={setImageFields}
+        onUploadingChange={trackUpload}
       />
       <MediaFieldList
         kind="audio"
         label={strings.audioLabel}
         fields={audioFields}
         setFields={setAudioFields}
+        onUploadingChange={trackUpload}
       />
       {error && (
         <p role="alert" className="text-sm text-danger">
@@ -88,7 +94,11 @@ const AnnotationForm = ({
         </p>
       )}
       <div className="flex gap-2">
-        <Button size="sm" onClick={handleSave} disabled={isPending}>
+        <Button
+          size="sm"
+          onClick={handleSave}
+          disabled={isPending || uploads > 0}
+        >
           {isPending ? strings.saving : strings.save}
         </Button>
         <Button variant="secondary" size="sm" onClick={onDone}>

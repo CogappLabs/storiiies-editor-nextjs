@@ -12,11 +12,19 @@ interface Props {
   label: string;
   fields: MediaField[];
   setFields: Dispatch<SetStateAction<MediaField[]>>;
+  /** Called with true when an upload starts and false when it settles. */
+  onUploadingChange?: (uploading: boolean) => void;
 }
 
 const MULTIPART_THRESHOLD_BYTES = 5 * 1024 * 1024;
 
-const MediaFieldList = ({ kind, label, fields, setFields }: Props) => {
+const MediaFieldList = ({
+  kind,
+  label,
+  fields,
+  setFields,
+  onUploadingChange,
+}: Props) => {
   const strings = useStrings().newAnnotationForm;
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +45,7 @@ const MediaFieldList = ({ kind, label, fields, setFields }: Props) => {
     }
     setError(null);
     setUploadingId(id);
+    onUploadingChange?.(true);
     try {
       const blob = await upload(`media/${file.name}`, file, {
         access: "public",
@@ -65,6 +74,7 @@ const MediaFieldList = ({ kind, label, fields, setFields }: Props) => {
       setError(err instanceof Error ? err.message : strings.uploadFailed);
     } finally {
       setUploadingId(null);
+      onUploadingChange?.(false);
     }
   };
 
