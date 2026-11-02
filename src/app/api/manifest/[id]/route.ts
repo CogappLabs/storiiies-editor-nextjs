@@ -42,13 +42,11 @@ export async function GET(
     );
   }
 
-  // Get image service URL (strip /info.json from the end)
   const imageServiceUrl = story.imageSource.infoJsonUrl.replace(
     /\/info\.json$/,
     "",
   );
 
-  // Build IIIF Presentation API v3 manifest
   const manifest = {
     "@context": "http://iiif.io/api/presentation/3/context.json",
     id: `${baseUrl}/api/manifest/${story.id}`,

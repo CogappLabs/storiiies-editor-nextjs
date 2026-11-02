@@ -16,7 +16,6 @@ type StoryWithCount = StoryWithImageSource & {
   _count: { annotations: number };
 };
 
-// Helper to safely get string from FormData
 const getString = (formData: FormData, key: string): string => {
   const value = formData.get(key);
   if (typeof value !== "string") {
@@ -44,7 +43,6 @@ const getPositiveInt = (formData: FormData, key: string): number => {
   return num;
 };
 
-// Validate annotation coordinates
 const validateCoordinates = (coords: {
   x?: number;
   y?: number;
@@ -116,7 +114,6 @@ const assertAnnotationInStory = async (
   }
 };
 
-// Story actions
 export const createStory = async (
   formData: FormData,
 ): Promise<ActionResult> => {
@@ -138,7 +135,6 @@ export const createStory = async (
     const width = getPositiveInt(formData, "imageWidth");
     const height = getPositiveInt(formData, "imageHeight");
 
-    // Get source type from form (defaults to 'url')
     const sourceTypeValue = getOptionalString(formData, "sourceType");
     const sourceType: ImageSourceType =
       sourceTypeValue === "manifest"
@@ -149,7 +145,6 @@ export const createStory = async (
 
     const manifestUrl = getOptionalString(formData, "manifestUrl");
 
-    // Create or find the ImageSource
     const imageSource = await prisma.imageSource.upsert({
       where: { infoJsonUrl },
       update: {},
@@ -319,7 +314,6 @@ export const isStoryDeleted = async (id: string): Promise<boolean> => {
   }
 };
 
-// Annotation actions
 export const createAnnotation = async (
   storyId: string,
   data: {
@@ -341,7 +335,6 @@ export const createAnnotation = async (
       throw new Error("Story ID is required");
     }
 
-    // Validate coordinates
     validateCoordinates({
       x: data.x,
       y: data.y,
@@ -349,7 +342,6 @@ export const createAnnotation = async (
       height: data.height,
     });
 
-    // Also validate viewport coordinates if provided
     if (
       data.viewportX !== undefined ||
       data.viewportY !== undefined ||
@@ -364,13 +356,11 @@ export const createAnnotation = async (
       });
     }
 
-    // Validate image URLs if provided
     const validImageUrls = data.imageUrls?.filter((url) => {
       if (!url.trim()) return false;
       return isValidHttpUrl(url);
     });
 
-    // Validate audio URLs if provided
     const validAudioUrls = data.audioUrls?.filter((url) => {
       if (!url.trim()) return false;
       return isValidHttpUrl(url);
@@ -438,7 +428,6 @@ export const updateAnnotation = async (
       throw new Error("Annotation ID and Story ID are required");
     }
 
-    // Validate coordinates if provided
     validateCoordinates({
       x: data.x,
       y: data.y,
@@ -524,7 +513,6 @@ export const reorderAnnotations = async (
   }
 };
 
-// Annotation Image actions
 export const updateAnnotationImages = async (
   annotationId: string,
   storyId: string,
@@ -541,7 +529,6 @@ export const updateAnnotationImages = async (
       (url) => url.trim() && isValidHttpUrl(url),
     );
 
-    // Delete all existing images and recreate with new order
     await prisma.$transaction([
       prisma.annotationImage.deleteMany({ where: { annotationId } }),
       ...validUrls.map((url, index) =>
@@ -561,7 +548,6 @@ export const updateAnnotationImages = async (
   }
 };
 
-// Annotation Audio actions
 export const updateAnnotationAudio = async (
   annotationId: string,
   storyId: string,
@@ -578,7 +564,6 @@ export const updateAnnotationAudio = async (
       (url) => url.trim() && isValidHttpUrl(url),
     );
 
-    // Delete all existing audio and recreate with new order
     await prisma.$transaction([
       prisma.annotationAudio.deleteMany({ where: { annotationId } }),
       ...validUrls.map((url, index) =>
@@ -598,7 +583,6 @@ export const updateAnnotationAudio = async (
   }
 };
 
-// ImageSource actions
 export type ImageSourceWithStories = ImageSource & {
   stories: { id: string; title: string; deletedAt: Date | null }[];
 };

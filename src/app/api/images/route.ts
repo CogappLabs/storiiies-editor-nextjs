@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Validate file is actually an image by reading its metadata with sharp
     try {
       const metadata = await sharp(buffer).metadata();
       if (!metadata.format) {

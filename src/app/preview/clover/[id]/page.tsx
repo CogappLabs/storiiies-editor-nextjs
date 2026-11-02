@@ -15,7 +15,6 @@ const ViewerLoading = () => {
   );
 };
 
-// Dynamic import for Clover Viewer (requires client-side only)
 const Viewer = dynamic(() => import("@samvera/clover-iiif/viewer"), {
   ssr: false,
   loading: () => <ViewerLoading />,

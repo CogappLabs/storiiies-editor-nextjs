@@ -16,7 +16,6 @@ export default async function Home() {
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Create new story */}
           <section className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold mb-4">
               {strings.home.createSectionTitle}
@@ -24,7 +23,6 @@ export default async function Home() {
             <CreateStoryForm />
           </section>
 
-          {/* Existing stories */}
           <section className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">

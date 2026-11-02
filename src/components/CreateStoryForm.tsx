@@ -243,8 +243,7 @@ const CreateStoryForm = () => {
     setInfoUrl(option.infoUrl);
     setImageSourceType("manifest");
 
-    // Fetch actual dimensions from info.json rather than trusting canvas metadata
-    // (manifests sometimes have swapped width/height in canvas)
+    // Some manifests swap canvas width and height; info.json is authoritative.
     try {
       const response = await fetch(option.infoUrl);
       if (response.ok) {
@@ -257,9 +256,7 @@ const CreateStoryForm = () => {
           return;
         }
       }
-    } catch {
-      // Fall back to canvas dimensions if info.json fetch fails
-    }
+    } catch {}
     setIiifInfo({ width: option.width, height: option.height });
   };
 
@@ -364,7 +361,6 @@ const CreateStoryForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
-      {/* Source Mode Tabs */}
       <div className="flex border-b">
         <button
           type="button"
@@ -398,7 +394,6 @@ const CreateStoryForm = () => {
         </button>
       </div>
 
-      {/* URL Mode */}
       {sourceMode === "url" && (
         <div>
           <label htmlFor="infoUrl" className="block text-sm font-medium mb-2">
@@ -435,7 +430,6 @@ const CreateStoryForm = () => {
         </div>
       )}
 
-      {/* Upload Mode */}
       {sourceMode === "upload" && (
         <div>
           <span className="block text-sm font-medium mb-2">
@@ -479,7 +473,6 @@ const CreateStoryForm = () => {
         </div>
       )}
 
-      {/* IIIF validation success message */}
       {iiifInfo && (
         <p className="text-sm text-green-600">
           {strings.createStoryForm.validIIIF(iiifInfo.width, iiifInfo.height)}

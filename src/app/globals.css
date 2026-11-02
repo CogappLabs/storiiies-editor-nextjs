@@ -55,8 +55,8 @@
     text-decoration-skip-ink: auto;
   }
 
-  /* One focus style for every control. Lavender was about 1.3:1 on white and
-     cream, under the 3:1 WCAG asks of a focus indicator. */
+  /* One focus style for every control: clears the 3:1 WCAG asks of a focus
+     indicator on white and cream, which the lavender accent does not. */
   :focus-visible {
     outline: 3px solid var(--color-cogapp-blue);
     outline-offset: 3px;
@@ -74,7 +74,6 @@
   }
 }
 
-/* Annotation crosshair styles */
 .crosshair-group line {
   stroke-linecap: round;
   pointer-events: none;

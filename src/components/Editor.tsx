@@ -141,9 +141,7 @@ const Editor = ({ story }: Props) => {
         />
       )}
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        {/* Viewer */}
         <div className="h-3/5 md:h-auto md:flex-1 relative">
           <AnnotatedViewer
             ref={viewerRef}
@@ -163,7 +161,7 @@ const Editor = ({ story }: Props) => {
           />
         </div>
 
-        {/* Sidebar - Bottom on mobile, left on desktop */}
+        {/* After the viewer in the DOM; shown below it on mobile, left of it on desktop. */}
         <aside
           className="h-2/5 md:h-auto md:w-80 border-t md:border-t-0 md:border-l bg-white flex flex-col order-2 md:order-first"
           aria-label={strings.editor.sidebarLabel}

@@ -64,7 +64,6 @@ interface DragInfo {
   annotationId: string;
 }
 
-// Convert window coordinates to image coordinates
 const windowToImage = (
   viewer: OpenSeadragon.Viewer,
   clientX: number,
@@ -76,7 +75,6 @@ const windowToImage = (
   return { x: imagePoint.x, y: imagePoint.y };
 };
 
-// Get positions for 8 resize handles around a rect
 const getHandlePositions = (
   x: number,
   y: number,
@@ -93,7 +91,6 @@ const getHandlePositions = (
   w: { cx: x, cy: y + h / 2 },
 });
 
-// Apply resize delta based on which handle is being dragged
 const applyResize = (
   handle: ResizeHandle,
   origRect: { x: number; y: number; width: number; height: number },
@@ -245,7 +242,6 @@ const handleCursors: Record<ResizeHandle, string> = {
   w: "ew-resize",
 };
 
-// Compute the image-to-pixel scale from OSD viewport state (Annotorious approach)
 const getScale = (viewer: OpenSeadragon.Viewer): number => {
   const zoom = viewer.viewport.getZoom(true);
   const containerWidth = viewer.viewport.getContainerSize().x;
@@ -279,7 +275,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
     const skipFitBoundsRef = useRef(false);
     const [isReady, setIsReady] = useState(false);
 
-    // Stable refs for callbacks
     const onAnnotationSelectRef = useRef(onAnnotationSelect);
     onAnnotationSelectRef.current = onAnnotationSelect;
     const onAnnotationUpdateRef = useRef(onAnnotationUpdate);
@@ -338,7 +333,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
       return 6 / scale;
     }, [getViewer]);
 
-    // Initialize OpenSeadragon + SVG overlay (Annotorious-style)
+    // OpenSeadragon plus an SVG overlay for the annotation boxes.
     useEffect(() => {
       if (!containerRef.current) return;
 
@@ -433,7 +428,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
       };
     }, [imageUrl]);
 
-    // Render annotations into the SVG <g> group
     useEffect(() => {
       const g = groupRef.current;
       if (!isReady || !g) return;
@@ -451,7 +445,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
         const group = document.createElementNS(SVG_NS, "g");
         group.setAttribute("data-annotation-id", ann.id);
 
-        // Annotation rectangle
         const rect = document.createElementNS(SVG_NS, "rect");
         rect.setAttribute("x", String(ann.x));
         rect.setAttribute("y", String(ann.y));
@@ -518,7 +511,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
             return;
           }
 
-          // Start move drag
           const viewer = getViewer();
           if (!viewer) return;
 
@@ -536,7 +528,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
             annotationId: ann.id,
           };
 
-          // Hide handles during move drag
           for (const h of group.querySelectorAll(".resize-handle")) {
             (h as SVGElement).style.display = "none";
           }
@@ -544,7 +535,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
 
         group.appendChild(rect);
 
-        // Crosshairs
         if (
           showCrosshairs &&
           ann.width >= VIEWER_CONFIG.crosshair.minDimension &&
@@ -582,7 +572,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
           group.appendChild(crosshairGroup);
         }
 
-        // Resize handles for selected annotation
         if (isSelected) {
           const handles = getHandlePositions(
             ann.x,
@@ -646,7 +635,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
       strings,
     ]);
 
-    // Global pointermove / pointerup for drag interactions
     useEffect(() => {
       const handlePointerMove = (e: PointerEvent) => {
         const drag = dragRef.current;
@@ -703,7 +691,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
             }
           }
 
-          // Show handles again after drag
           if (group) {
             for (const h of group.querySelectorAll(".resize-handle")) {
               (h as SVGElement).style.display = "";

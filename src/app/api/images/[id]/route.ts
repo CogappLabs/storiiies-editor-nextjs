@@ -51,7 +51,6 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
 
-    // Prevent deletion if image is being used by any stories
     if (imageSource.stories.length > 0) {
       const titles = imageSource.stories.map((s) => s.title).join(", ");
       return NextResponse.json(
@@ -62,7 +61,6 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Only delete blob files for uploaded images
     if (imageSource.sourceType === "upload") {
       await deleteDirectory(`iiif/${id}`);
     }

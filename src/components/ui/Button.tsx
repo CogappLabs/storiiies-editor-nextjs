@@ -20,7 +20,6 @@ interface ButtonLinkProps extends ButtonBaseProps {
   href: string;
 }
 
-// Cogapp button styles: color inversion on hover, 1px border
 export const buttonVariantStyles: Record<ButtonVariant, string> = {
   primary:
     "bg-cogapp-charcoal text-cogapp-cream border-cogapp-cream hover:bg-cogapp-cream hover:text-cogapp-charcoal",
@@ -31,7 +30,6 @@ export const buttonVariantStyles: Record<ButtonVariant, string> = {
     "bg-transparent text-red-600 border-red-600 hover:bg-red-600 hover:text-white",
 };
 
-// Cogapp sizing: 8px 12px 6px 12px padding, 16px font, 500 weight
 export const buttonSizeStyles: Record<ButtonSize, string> = {
   sm: "pt-1 pb-0.5 px-2 text-sm",
   md: "pt-2 pb-1.5 px-3 text-base",
@@ -59,7 +57,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
-    // Default: show arrow for primary buttons
     const displayArrow = showArrow ?? variant === "primary";
 
     return (

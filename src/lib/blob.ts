@@ -80,7 +80,6 @@ export const getBlobBaseUrl = (): string => {
   if (!token) {
     throw new Error("BLOB_READ_WRITE_TOKEN is not set");
   }
-  // Extract store ID from token to construct base URL
   // Token format: vercel_blob_rw_<storeId>_<rest>
   const match = token.match(/^vercel_blob_rw_([a-zA-Z0-9]+)_/);
   if (!match) {

@@ -51,7 +51,7 @@ schema, builds into `.next-e2e` and serves on port 3100. The single spec in
 - The upload test uses real Vercel Blob storage and skips without
   `BLOB_READ_WRITE_TOKEN`.
 
-**Do not run `npm run dev`** — the user manages the dev server manually.
+**Do not run `npm run dev`.** The user manages the dev server manually.
 
 ## Project Structure
 
@@ -100,7 +100,7 @@ prisma/
 
 - **Indent:** Spaces (not tabs)
 - **Quotes:** Double quotes
-- Biome handles all formatting — do not use Prettier or ESLint
+- Biome handles all formatting; do not use Prettier or ESLint
 
 ## Database
 
