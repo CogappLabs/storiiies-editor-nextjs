@@ -1,44 +1,25 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Header, ViewerSwitcher } from "@/components/ui";
+import PreviewShell from "@/components/PreviewShell";
+import { useManifestUrl } from "@/lib/hooks/useManifestUrl";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 
 const MiradorPreview = () => {
-  const params = useParams();
-  const id = params.id as string;
-  const [iframeSrc, setIframeSrc] = useState("");
+  const { id } = useParams<{ id: string }>();
+  const manifestUrl = useManifestUrl(id);
   const strings = useStrings();
-  const viewerLabel = strings.common.viewer(strings.viewers.mirador);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const manifestUrl = `${window.location.origin}/api/manifest/${id}`;
-      setIframeSrc(`/mirador.html?manifest=${encodeURIComponent(manifestUrl)}`);
-    }
-  }, [id]);
 
   return (
-    <div className="h-screen flex flex-col">
-      <Header
-        title={viewerLabel}
-        backLink={{
-          href: `/editor/${id}`,
-          label: strings.preview.backToEditor,
-        }}
-        fullWidth
-        actions={<ViewerSwitcher storyId={id} current="mirador" />}
-      />
-
-      {iframeSrc && (
+    <PreviewShell storyId={id} viewer="mirador">
+      {manifestUrl && (
         <iframe
-          src={iframeSrc}
+          src={`/mirador.html?manifest=${encodeURIComponent(manifestUrl)}`}
           className="flex-1 w-full border-0"
-          title={viewerLabel}
+          title={strings.common.viewer(strings.viewers.mirador)}
         />
       )}
-    </div>
+    </PreviewShell>
   );
 };
 

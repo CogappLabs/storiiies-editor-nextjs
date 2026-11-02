@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { updateAnnotation } from "@/lib/actions";
+import { useManifestUrl } from "@/lib/hooks/useManifestUrl";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { AnnotationBounds, Rect, StoryWithAnnotations } from "@/lib/types";
 import type { AnnotatedViewerHandle } from "./AnnotatedViewer";
@@ -38,7 +39,6 @@ const Editor = ({ story }: Props) => {
   >(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showManifestLink, setShowManifestLink] = useState(false);
-  const [manifestUrl, setManifestUrl] = useState("");
   const [showCrosshairs, setShowCrosshairs] = useState(false);
   // "Add" captures the current view, so it waits for the image to open.
   const [viewerReady, setViewerReady] = useState(false);
@@ -51,11 +51,7 @@ const Editor = ({ story }: Props) => {
   const saveSeq = useRef(0);
   const strings = useStrings();
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setManifestUrl(`${window.location.origin}/api/manifest/${story.id}`);
-    }
-  }, [story.id]);
+  const manifestUrl = useManifestUrl(story.id);
 
   const handleAddAnnotation = () => {
     const bounds = viewerRef.current?.getViewportBounds();

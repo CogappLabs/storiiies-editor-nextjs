@@ -2,22 +2,18 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Header, ViewerSwitcher } from "@/components/ui";
+import PreviewShell from "@/components/PreviewShell";
 import "@cogapp/storiiies-viewer/dist/storiiies-viewer.css";
+import { useManifestUrl } from "@/lib/hooks/useManifestUrl";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 
 const StoriiiesPreview = () => {
-  const params = useParams();
-  const id = params.id as string;
-  const [manifestUrl, setManifestUrl] = useState("");
+  const { id } = useParams<{ id: string }>();
+  const manifestUrl = useManifestUrl(id);
   const [error, setError] = useState<string | null>(null);
   const strings = useStrings();
   const viewerLabel = strings.common.viewer(strings.viewers.storiiies);
   const { errorLoading, errorGeneric } = strings.preview;
-
-  useEffect(() => {
-    setManifestUrl(`${window.location.origin}/api/manifest/${id}`);
-  }, [id]);
 
   useEffect(() => {
     if (!manifestUrl) return;
@@ -61,23 +57,13 @@ const StoriiiesPreview = () => {
   }, [errorGeneric, errorLoading, manifestUrl, viewerLabel]);
 
   return (
-    <div className="h-screen flex flex-col">
-      <Header
-        title={viewerLabel}
-        backLink={{
-          href: `/editor/${id}`,
-          label: strings.preview.backToEditor,
-        }}
-        fullWidth
-        actions={<ViewerSwitcher storyId={id} current="storiiies" />}
-      />
-
+    <PreviewShell storyId={id} viewer="storiiies">
       {error && (
         <div className="bg-danger/10 text-danger p-4 text-center">{error}</div>
       )}
 
       <div id="storiiies-viewer" className="flex-1" />
-    </div>
+    </PreviewShell>
   );
 };
 

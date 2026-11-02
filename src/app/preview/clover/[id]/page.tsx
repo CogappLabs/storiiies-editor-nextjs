@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Header, ViewerSwitcher } from "@/components/ui";
+import PreviewShell from "@/components/PreviewShell";
+import { useManifestUrl } from "@/lib/hooks/useManifestUrl";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 
 const ViewerLoading = () => {
@@ -17,38 +17,19 @@ const ViewerLoading = () => {
 
 const Viewer = dynamic(() => import("@samvera/clover-iiif/viewer"), {
   ssr: false,
-  loading: () => <ViewerLoading />,
+  loading: ViewerLoading,
 });
 
 const CloverPreview = () => {
-  const params = useParams();
-  const id = params.id as string;
-  const [manifestUrl, setManifestUrl] = useState("");
-  const strings = useStrings();
-  const viewerLabel = strings.common.viewer(strings.viewers.clover);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setManifestUrl(`${window.location.origin}/api/manifest/${id}`);
-    }
-  }, [id]);
+  const { id } = useParams<{ id: string }>();
+  const manifestUrl = useManifestUrl(id);
 
   return (
-    <div className="h-screen flex flex-col">
-      <Header
-        title={viewerLabel}
-        backLink={{
-          href: `/editor/${id}`,
-          label: strings.preview.backToEditor,
-        }}
-        fullWidth
-        actions={<ViewerSwitcher storyId={id} current="clover" />}
-      />
-
+    <PreviewShell storyId={id} viewer="clover">
       <div className="flex-1">
         {manifestUrl && <Viewer iiifContent={manifestUrl} />}
       </div>
-    </div>
+    </PreviewShell>
   );
 };
 

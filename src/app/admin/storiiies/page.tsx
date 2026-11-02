@@ -4,6 +4,7 @@ import RestoreStoryButton from "@/components/RestoreStoryButton";
 import { Header, panelClass, textLinkClass } from "@/components/ui";
 import { getAllStories } from "@/lib/actions";
 import { formatDate, getStrings } from "@/lib/i18n/strings";
+import { VIEWERS } from "@/lib/viewers";
 
 export const dynamic = "force-dynamic";
 
@@ -92,20 +93,13 @@ const StoryTable = ({
                         <span className="text-xs text-cogapp-gray">
                           {admin.previewLabel}
                         </span>
-                        {(
-                          [
-                            ["storiiies", admin.actionLabels.storiiies],
-                            ["clover", admin.actionLabels.clover],
-                            ["mirador", admin.actionLabels.mirador],
-                            ["annona", admin.actionLabels.annona],
-                          ] as const
-                        ).map(([viewer, label]) => (
+                        {VIEWERS.map((viewer) => (
                           <Link
                             key={viewer}
                             href={`/preview/${viewer}/${story.id}`}
                             className={textLinkClass}
                           >
-                            {label}
+                            {strings.viewers[viewer]}
                           </Link>
                         ))}
                         <a

@@ -3,24 +3,17 @@
 import { useParams } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
-import { Header, ViewerSwitcher } from "@/components/ui";
+import PreviewShell from "@/components/PreviewShell";
+import { useManifestUrl } from "@/lib/hooks/useManifestUrl";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 
 const AnnonaPreview = () => {
-  const params = useParams();
-  const id = params.id as string;
-  const [manifestUrl, setManifestUrl] = useState("");
+  const { id } = useParams<{ id: string }>();
+  const manifestUrl = useManifestUrl(id);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const storyboardRef = useRef<HTMLDivElement>(null);
   const strings = useStrings();
-  const viewerLabel = strings.common.viewer(strings.viewers.annona);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setManifestUrl(`${window.location.origin}/api/manifest/${id}`);
-    }
-  }, [id]);
 
   // Create the web component safely via DOM API instead of dangerouslySetInnerHTML
   useEffect(() => {
@@ -56,7 +49,7 @@ const AnnonaPreview = () => {
   }, [manifestUrl, scriptsLoaded]);
 
   return (
-    <div className="h-screen flex flex-col">
+    <PreviewShell storyId={id} viewer="annona">
       <Script
         src="https://ncsu-libraries.github.io/annona/dist/annona.js"
         onLoad={() => setScriptsLoaded(true)}
@@ -64,16 +57,6 @@ const AnnonaPreview = () => {
       <link
         rel="stylesheet"
         href="https://ncsu-libraries.github.io/annona/dist/annona.css"
-      />
-
-      <Header
-        title={viewerLabel}
-        backLink={{
-          href: `/editor/${id}`,
-          label: strings.preview.backToEditor,
-        }}
-        fullWidth
-        actions={<ViewerSwitcher storyId={id} current="annona" />}
       />
 
       <div ref={containerRef} className="flex-1">
@@ -85,7 +68,7 @@ const AnnonaPreview = () => {
           </div>
         )}
       </div>
-    </div>
+    </PreviewShell>
   );
 };
 

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
+import { VIEWERS } from "@/lib/viewers";
 import { Button, ButtonLink, Modal } from "./ui";
 
 interface SharePopupProps {
@@ -51,34 +52,16 @@ const SharePopup = ({ storyId, manifestUrl, onClose }: SharePopupProps) => {
             {strings.sharePopup.previewHeading}
           </p>
           <div className="flex gap-2 flex-wrap">
-            <ButtonLink
-              href={`/preview/storiiies/${storyId}`}
-              size="sm"
-              className="flex-1 justify-center"
-            >
-              {strings.viewers.storiiies}
-            </ButtonLink>
-            <ButtonLink
-              href={`/preview/clover/${storyId}`}
-              size="sm"
-              className="flex-1 justify-center"
-            >
-              {strings.viewers.clover}
-            </ButtonLink>
-            <ButtonLink
-              href={`/preview/mirador/${storyId}`}
-              size="sm"
-              className="flex-1 justify-center"
-            >
-              {strings.viewers.mirador}
-            </ButtonLink>
-            <ButtonLink
-              href={`/preview/annona/${storyId}`}
-              size="sm"
-              className="flex-1 justify-center"
-            >
-              {strings.viewers.annona}
-            </ButtonLink>
+            {VIEWERS.map((viewer) => (
+              <ButtonLink
+                key={viewer}
+                href={`/preview/${viewer}/${storyId}`}
+                size="sm"
+                className="flex-1 justify-center"
+              >
+                {strings.viewers[viewer]}
+              </ButtonLink>
+            ))}
           </div>
         </div>
       </div>
