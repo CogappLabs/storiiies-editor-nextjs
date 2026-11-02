@@ -12,7 +12,7 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@cogapp/storiiies-viewer": "^3.1.2",
+    "@cogapp/storiiies-viewer": "file:vendor/storiiies-viewer-1cf0e70.tgz",
     "@hello-pangea/dnd": "^18.0.1",
     "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^7.4.1",
