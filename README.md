@@ -76,7 +76,7 @@ The e2e suite never touches the shared database. The upload test uses real Blob 
 
 The app runs on Vercel with a Neon database from the Vercel Marketplace, which fills in the Postgres variables. Add a Blob store for `BLOB_READ_WRITE_TOKEN`. Apply schema changes with `npx prisma db push` against the production database; the build does not change the schema.
 
-With basic auth set, every route except `/api/manifest/*` needs a login, so external viewers can still load manifests.
+With basic auth set, every route needs a login except `/api/manifest/*` and the `/preview/*` pages, so manifests and previews can be shared.
 
 GitHub Actions runs lint, types and the e2e suite (against a Postgres service container) on every push and pull request.
 

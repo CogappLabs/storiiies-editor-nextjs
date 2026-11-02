@@ -2,8 +2,9 @@ import { type NextRequest, NextResponse } from "next/server";
 
 export const config = {
   matcher: [
-    // Manifests stay public so external IIIF viewers can load them.
-    "/((?!api/manifest|_next/static|_next/image|favicon|sitemap.xml|robots.txt).*)",
+    // Public: manifests for external IIIF viewers, and the preview pages
+    // (plus the Mirador iframe they embed) so stories can be shared.
+    "/((?!api/manifest|preview/|mirador\\.html|_next/static|_next/image|favicon|sitemap.xml|robots.txt).*)",
   ],
 };
 

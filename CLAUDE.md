@@ -95,7 +95,7 @@ prisma.config.ts          # Prisma config (loads .env.local)
 ## Key Patterns
 
 - **Server actions** (`src/lib/actions/`): All database mutations go through server actions, split by domain. Reads live in `src/lib/queries.ts`, outside `"use server"`, so they are not exposed as callable endpoints. They validate inputs and call `revalidatePath()` after writes. Mutations return `{ error }` instead of throwing, because Next hides thrown messages in production; callers must check the result.
-- **Auth**: `src/proxy.ts` applies basic auth to everything except `/api/manifest`, which external viewers load.
+- **Auth**: `src/proxy.ts` applies basic auth to everything except `/api/manifest` (external viewers load it) and `/preview/*` plus `/mirador.html` (shareable previews). Preview pages must stay read-only: they only read the public manifest.
 - **Turbopack HMR workaround**: OpenSeadragon instances are stored in a `WeakMap` outside React state (`viewer/AnnotatedViewer.tsx`) to prevent Turbopack from trying to serialize them. Preview pages must not store viewer instances in React refs/state for the same reason.
 - **IIIF manifests**: Generated dynamically at `/api/manifest/[id]`. Annotations become IIIF annotations with `TextualBody` and `Sound` bodies. Annotation images are embedded as `<img>` in a `text/html` TextualBody, because StoriiiesViewer ignores separate `Image` bodies.
 - **Image sources**: An `ImageSource` can be shared by multiple stories (one-to-many). Sources can be URLs, manifest selections, or uploads.
