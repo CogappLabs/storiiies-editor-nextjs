@@ -66,7 +66,6 @@ const en = {
     fileTooLarge: (maxMb: number) =>
       `File is too large. Maximum size is ${maxMb}MB.`,
     uploading: "Uploading and processing...",
-    uploadSuccess: "Image uploaded successfully",
     uploadError: "Failed to upload image",
     dragDropHint: "or drag and drop",
   },
@@ -75,15 +74,10 @@ const en = {
     settingsButton: "Settings",
     annotationsHeading: "Annotations",
     addButton: "Add",
-    noAnnotations: 'No annotations yet. Click "Add" to create one.',
     sidebarLabel: "Annotations sidebar",
     saving: "Saving...",
     saved: "Saved",
     saveFailed: "Save failed",
-    crosshairs: {
-      show: "Show crosshairs",
-      hide: "Hide crosshairs",
-    },
     deletedTitle: "Story Deleted",
     deletedHeading: "This story has been deleted",
     deletedMessage:
@@ -124,7 +118,6 @@ const en = {
     save: "Save",
     saving: "Saving...",
     cancel: "Cancel",
-    previewUnavailable: "Preview unavailable (too large to display).",
   },
   sharePopup: {
     title: "IIIF Manifest URL",
@@ -178,7 +171,6 @@ const en = {
     allImagesTitle: "Uploaded Images",
     cardDescription: "View and manage all stories in the database",
     imagesCardDescription: "View and manage uploaded IIIF images",
-    noAuthorPlaceholder: "-",
     storiesCount: (count: number) => `${count} stories`,
     deletedStories: (count: number) => `Deleted stories (${count})`,
     byAuthor: (author: string) => `by ${author}`,

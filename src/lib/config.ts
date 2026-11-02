@@ -8,7 +8,3 @@ export const VIEWER_CONFIG = {
     strokeWidth: 2,
   },
 } as const;
-
-export const UI_CONFIG = {
-  sharePopupCopyTimeoutMs: 2000,
-} as const;

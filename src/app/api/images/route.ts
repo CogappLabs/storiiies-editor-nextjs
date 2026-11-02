@@ -87,38 +87,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-export async function GET() {
-  try {
-    const imageSources = await prisma.imageSource.findMany({
-      where: { sourceType: "upload" },
-      orderBy: { createdAt: "desc" },
-      include: {
-        stories: {
-          select: { id: true, title: true },
-        },
-      },
-    });
-
-    return NextResponse.json({
-      images: imageSources.map((imageSource) => ({
-        id: imageSource.id,
-        originalName: imageSource.originalName,
-        width: imageSource.width,
-        height: imageSource.height,
-        infoJson: imageSource.infoJsonUrl,
-        createdAt: imageSource.createdAt.toISOString(),
-        usedBy: imageSource.stories.map((s) => ({
-          id: s.id,
-          title: s.title,
-        })),
-      })),
-    });
-  } catch (error) {
-    console.error("Image list error:", error);
-    return NextResponse.json(
-      { error: "Failed to list images" },
-      { status: 500 },
-    );
-  }
-}

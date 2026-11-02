@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { UI_CONFIG } from "@/lib/config";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import { Button, ButtonLink, Modal } from "./ui";
 
@@ -19,7 +18,7 @@ const SharePopup = ({ storyId, manifestUrl, onClose }: SharePopupProps) => {
   const copyManifestUrl = async () => {
     await navigator.clipboard.writeText(manifestUrl);
     setCopied(true);
-    setTimeout(() => setCopied(false), UI_CONFIG.sharePopupCopyTimeoutMs);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (

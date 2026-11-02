@@ -7,9 +7,9 @@ export const isValidHttpUrl = (url: string): boolean => {
   }
 };
 
-export const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 export const MAX_FILE_SIZE_MB = 25;
+export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 // Annotation images and audio go straight from the browser to Vercel Blob.
-export const MAX_MEDIA_SIZE_BYTES = 50 * 1024 * 1024;
 export const MAX_MEDIA_SIZE_MB = 50;
+export const MAX_MEDIA_SIZE_BYTES = MAX_MEDIA_SIZE_MB * 1024 * 1024;

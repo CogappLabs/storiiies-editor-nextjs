@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { createStory } from "@/lib/actions";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { IIIFInfo } from "@/lib/types";
@@ -149,7 +149,6 @@ const CreateStoryForm = () => {
   const [imageSourceType, setImageSourceType] =
     useState<ImageSourceType>("url");
   const [manifestUrl, setManifestUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const strings = useStrings();
 
   const resetImageState = () => {
@@ -446,7 +445,6 @@ const CreateStoryForm = () => {
             } ${uploading ? "opacity-50 pointer-events-none" : ""}`}
           >
             <input
-              ref={fileInputRef}
               type="file"
               accept="image/*"
               onChange={handleFileChange}

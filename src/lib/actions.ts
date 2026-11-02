@@ -587,24 +587,6 @@ export type ImageSourceWithStories = ImageSource & {
   stories: { id: string; title: string; deletedAt: Date | null }[];
 };
 
-export const getImageSources = async (): Promise<ImageSourceWithStories[]> => {
-  try {
-    const imageSources = await prisma.imageSource.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        stories: {
-          select: { id: true, title: true, deletedAt: true },
-        },
-      },
-    });
-
-    return imageSources;
-  } catch (error) {
-    handleActionError("fetch image sources", error);
-    throw error;
-  }
-};
-
 export const getUploadedImages = async (): Promise<
   ImageSourceWithStories[]
 > => {
