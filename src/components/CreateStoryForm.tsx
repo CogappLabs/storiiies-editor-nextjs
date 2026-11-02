@@ -159,7 +159,7 @@ const CreateStoryForm = () => {
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      setError(strings.createStoryForm.fileTooLarge(MAX_FILE_SIZE_MB));
+      setError(strings.errors.fileTooLarge(MAX_FILE_SIZE_MB));
       return;
     }
 

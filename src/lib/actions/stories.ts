@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ImageSourceType } from "@/generated/prisma/client";
+import { getStrings } from "@/lib/i18n/strings";
 import { prisma } from "@/lib/prisma";
 import { isValidHttpUrl } from "@/lib/validation";
 import {
@@ -13,12 +14,14 @@ import {
   getString,
 } from "./shared";
 
+const { errors } = getStrings();
+
 const SOURCE_TYPES: ImageSourceType[] = ["url", "manifest", "upload"];
 
 const storyFields = (formData: FormData) => {
   const title = getString(formData, "title").trim();
   if (!title) {
-    throw new Error("Title is required");
+    throw new Error(errors.titleRequired);
   }
   return {
     title,
@@ -35,7 +38,7 @@ export const createStory = async (
     const fields = storyFields(formData);
     const infoJsonUrl = getString(formData, "imageUrl");
     if (!isValidHttpUrl(infoJsonUrl)) {
-      throw new Error("Invalid image URL");
+      throw new Error(errors.invalidImageUrl);
     }
     const sourceType =
       SOURCE_TYPES.find((t) => t === formData.get("sourceType")) ?? "url";

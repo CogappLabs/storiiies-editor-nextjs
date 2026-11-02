@@ -81,7 +81,8 @@ src/
     form-utils.ts         # Form field state helpers
     iiif-manifest.ts      # Parses IIIF manifests into selectable canvases
     viewers.ts            # The preview viewer list
-    i18n/strings.ts       # All UI strings (centralized)
+    i18n/en.ts            # Every user-facing string, including server errors
+    i18n/strings.ts       # getStrings(), locale lookup, formatDate
     validation.ts         # URL validation
     prisma.ts             # Prisma client singleton
     config.ts             # Viewer configuration constants
@@ -99,7 +100,7 @@ prisma.config.ts          # Prisma config (loads .env.local)
 - **IIIF manifests**: Generated dynamically at `/api/manifest/[id]`. Annotations become IIIF annotations with `TextualBody` and `Sound` bodies. Annotation images are embedded as `<img>` in a `text/html` TextualBody, because StoriiiesViewer ignores separate `Image` bodies.
 - **Image sources**: An `ImageSource` can be shared by multiple stories (one-to-many). Sources can be URLs, manifest selections, or uploads.
 - **Soft delete**: Stories use `deletedAt` for soft deletion.
-- **i18n**: All UI strings are in `src/lib/i18n/strings.ts`. Use `getStrings()` (server) or `useStrings()` (client).
+- **i18n**: Every user-facing string, including server action and API error messages, lives in `src/lib/i18n/en.ts`. Use `getStrings()` (server) or `useStrings()` (client). Only developer-facing errors (missing env config) stay inline.
 
 ## Formatting
 

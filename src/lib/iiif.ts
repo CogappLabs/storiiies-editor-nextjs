@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import sharp from "sharp";
+import { getStrings } from "@/lib/i18n/strings";
 
 export interface TileGenerationResult {
   tempDir: string;
@@ -23,7 +24,7 @@ export const generateIIIFTiles = async (
     const metadata = await image.metadata();
 
     if (!metadata.width || !metadata.height) {
-      throw new Error("Could not determine image dimensions");
+      throw new Error(getStrings().errors.imageDimensionsUnknown);
     }
 
     // Sharp appends the directory name to the id, so we only include the parent path

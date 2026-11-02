@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import type { Prisma } from "@/generated/prisma/client";
 import { deleteOrphanedMedia } from "@/lib/blob";
+import { getStrings } from "@/lib/i18n/strings";
 import { prisma } from "@/lib/prisma";
 import {
   type ActionResult,
@@ -11,6 +12,8 @@ import {
   httpUrls,
   validateCoordinates,
 } from "./shared";
+
+const { errors } = getStrings();
 
 // Serialises ordinal allocation per story: concurrent creates otherwise both
 // read the same max ordinal under Read Committed.
@@ -25,7 +28,7 @@ const assertAnnotationInStory = async (
     where: { id: annotationId, storyId },
   });
   if (count === 0) {
-    throw new Error("Annotation not found");
+    throw new Error(errors.annotationNotFound);
   }
 };
 
@@ -114,7 +117,7 @@ export const updateAnnotation = async (
       data,
     });
     if (count === 0) {
-      throw new Error("Annotation not found");
+      throw new Error(errors.annotationNotFound);
     }
     revalidatePath(`/editor/${storyId}`);
   } catch (error) {
@@ -132,7 +135,7 @@ export const deleteAnnotation = async (
       select: { images: true, audio: true },
     });
     if (!annotation) {
-      throw new Error("Annotation not found");
+      throw new Error(errors.annotationNotFound);
     }
     await prisma.annotation.delete({ where: { id } });
     cleanUpMedia([
@@ -162,7 +165,7 @@ export const reorderAnnotations = async (
       matching !== annotationIds.length ||
       total !== annotationIds.length
     ) {
-      throw new Error("Annotation list is out of date. Reload and try again.");
+      throw new Error(errors.annotationListStale);
     }
 
     await prisma.$transaction(

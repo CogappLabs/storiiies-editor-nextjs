@@ -2,8 +2,10 @@ import { del, put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { getBlobBaseUrl } from "@/lib/blob";
+import { getStrings } from "@/lib/i18n/strings";
 
 const MAX_EDGE = 2000;
+const { errors } = getStrings();
 
 // Annotation images upload from the browser at full size (see ../route.ts);
 // this swaps the original for a web-sized WebP.
@@ -18,12 +20,15 @@ export async function POST(request: Request) {
       source.origin !== new URL(getBlobBaseUrl()).origin ||
       !source.pathname.startsWith("/media/")
     ) {
-      return NextResponse.json({ error: "Invalid image URL" }, { status: 400 });
+      return NextResponse.json(
+        { error: errors.invalidImageUrl },
+        { status: 400 },
+      );
     }
 
     const response = await fetch(source);
     if (!response.ok) {
-      throw new Error(`Could not fetch uploaded image (${response.status})`);
+      throw new Error(errors.fetchUploadFailed(response.status));
     }
 
     const resized = await sharp(Buffer.from(await response.arrayBuffer()), {

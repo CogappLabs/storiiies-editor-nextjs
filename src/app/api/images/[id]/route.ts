@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { deleteDirectory } from "@/lib/blob";
+import { getStrings } from "@/lib/i18n/strings";
 import { prisma } from "@/lib/prisma";
+
+const { errors } = getStrings();
 
 export async function DELETE(
   _request: NextRequest,
@@ -14,14 +17,17 @@ export async function DELETE(
     });
 
     if (!imageSource) {
-      return NextResponse.json({ error: "Image not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: errors.imageNotFound },
+        { status: 404 },
+      );
     }
 
     if (imageSource.stories.length > 0) {
       const titles = imageSource.stories.map((s) => s.title).join(", ");
       return NextResponse.json(
         {
-          error: `Cannot delete image: it is being used by ${imageSource.stories.length === 1 ? "story" : "stories"} "${titles}"`,
+          error: errors.imageInUse(titles, imageSource.stories.length),
         },
         { status: 409 },
       );
@@ -37,7 +43,7 @@ export async function DELETE(
   } catch (error) {
     console.error("Image delete error:", error);
     return NextResponse.json(
-      { error: "Failed to delete image" },
+      { error: errors.deleteImageFailed },
       { status: 500 },
     );
   }

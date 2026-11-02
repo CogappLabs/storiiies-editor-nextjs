@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { getStrings } from "@/lib/i18n/strings";
 import { prisma } from "@/lib/prisma";
 import { storyWithMedia } from "@/lib/queries";
 
@@ -8,6 +9,8 @@ const escapeHtml = (s: string) =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+
+const { errors } = getStrings();
 
 export async function GET(
   request: NextRequest,
@@ -25,14 +28,11 @@ export async function GET(
   });
 
   if (!story) {
-    return NextResponse.json({ error: "Story not found" }, { status: 404 });
+    return NextResponse.json({ error: errors.storyNotFound }, { status: 404 });
   }
 
   if (story.deletedAt) {
-    return NextResponse.json(
-      { error: "This story has been deleted and is no longer available" },
-      { status: 410 },
-    );
+    return NextResponse.json({ error: errors.storyDeleted }, { status: 410 });
   }
 
   const imageServiceUrl = story.imageSource.infoJsonUrl.replace(

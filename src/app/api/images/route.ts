@@ -1,9 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { getBlobBaseUrl, uploadDirectory } from "@/lib/blob";
+import { getStrings } from "@/lib/i18n/strings";
 import { cleanupTempDir, generateIIIFTiles } from "@/lib/iiif";
 import { prisma } from "@/lib/prisma";
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from "@/lib/validation";
+
+const { errors } = getStrings();
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,15 +14,12 @@ export async function POST(request: NextRequest) {
     const file = formData.get("image") as File | null;
 
     if (!file) {
-      return NextResponse.json(
-        { error: "No image file provided" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: errors.noImageFile }, { status: 400 });
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
       return NextResponse.json(
-        { error: `File is too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.` },
+        { error: errors.fileTooLarge(MAX_FILE_SIZE_MB) },
         { status: 400 },
       );
     }
@@ -29,16 +29,10 @@ export async function POST(request: NextRequest) {
     try {
       const metadata = await sharp(buffer).metadata();
       if (!metadata.format) {
-        return NextResponse.json(
-          { error: "File is not a valid image" },
-          { status: 400 },
-        );
+        return NextResponse.json({ error: errors.notAnImage }, { status: 400 });
       }
     } catch {
-      return NextResponse.json(
-        { error: "File is not a valid image" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: errors.notAnImage }, { status: 400 });
     }
 
     const imageId = crypto.randomUUID();

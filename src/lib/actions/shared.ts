@@ -1,24 +1,26 @@
 import { unstable_rethrow } from "next/navigation";
+import { getStrings } from "@/lib/i18n/strings";
 import { isValidHttpUrl } from "@/lib/validation";
+
+const { errors } = getStrings();
 
 export type ActionResult = { error: string } | undefined;
 
 // Next masks thrown server action errors in production, so mutations return
-// the message instead. Prisma errors are verbose and internal, so they get
-// the generic fallback.
+// the message instead. Prisma errors are verbose and internal, so users get
+// the generic message and the log gets the detail.
 export const actionFailure = (scope: string, error: unknown): ActionResult => {
   unstable_rethrow(error);
-  const fallback = `Failed to ${scope}`;
-  console.error(`${fallback}:`, error);
+  console.error(`Failed to ${scope}:`, error);
   const isOwnMessage =
     error instanceof Error && !error.constructor.name.startsWith("Prisma");
-  return { error: isOwnMessage ? error.message : fallback };
+  return { error: isOwnMessage ? error.message : errors.generic };
 };
 
 export const getString = (formData: FormData, key: string): string => {
   const value = formData.get(key);
   if (typeof value !== "string") {
-    throw new Error(`Missing or invalid field: ${key}`);
+    throw new Error(errors.missingField(key));
   }
   return value;
 };
@@ -35,7 +37,7 @@ export const getOptionalString = (
 export const getPositiveInt = (formData: FormData, key: string): number => {
   const num = Number.parseInt(getString(formData, key), 10);
   if (Number.isNaN(num) || num <= 0) {
-    throw new Error(`${key} must be a positive number`);
+    throw new Error(errors.notPositive(key));
   }
   return num;
 };
@@ -55,10 +57,10 @@ export const validateCoordinates = ({
   const valid = (n: number | undefined, min: number) =>
     n === undefined || (Number.isFinite(n) && n >= min);
   if (!valid(x, 0) || !valid(y, 0)) {
-    throw new Error("Coordinates must be non-negative numbers");
+    throw new Error(errors.coordinatesNegative);
   }
   if (!valid(width, Number.MIN_VALUE) || !valid(height, Number.MIN_VALUE)) {
-    throw new Error("Width and height must be positive numbers");
+    throw new Error(errors.sizeNotPositive);
   }
 };
 

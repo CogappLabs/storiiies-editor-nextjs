@@ -25,7 +25,7 @@ const MediaFieldList = ({
   setFields,
   onUploadingChange,
 }: Props) => {
-  const strings = useStrings().newAnnotationForm;
+  const { newAnnotationForm: strings, errors } = useStrings();
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isImage = kind === "image";
@@ -40,7 +40,7 @@ const MediaFieldList = ({
 
   const handleFile = async (id: string, file: File) => {
     if (file.size > MAX_MEDIA_SIZE_BYTES) {
-      setError(strings.fileTooLarge(MAX_MEDIA_SIZE_MB));
+      setError(errors.fileTooLarge(MAX_MEDIA_SIZE_MB));
       return;
     }
     setError(null);
