@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import type { Story } from "@/generated/prisma/client";
 import { deleteStory, updateStory } from "@/lib/actions/stories";
@@ -17,6 +18,7 @@ const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
   const [error, setError] = useState<string | null>(null);
   const strings = useStrings();
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const handleUpdateStory = (formData: FormData) => {
     setError(null);
@@ -35,7 +37,11 @@ const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
       setError(null);
       startTransition(async () => {
         const res = await deleteStory(story.id);
-        if (res?.error) setError(res.error);
+        if (res?.error) {
+          setError(res.error);
+          return;
+        }
+        router.push("/");
       });
     }
   };

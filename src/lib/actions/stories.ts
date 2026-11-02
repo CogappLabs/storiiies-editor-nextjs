@@ -81,7 +81,7 @@ export const deleteStory = async (id: string): Promise<ActionResult> => {
       data: { deletedAt: new Date() },
     });
     revalidatePath("/");
-    redirect("/");
+    revalidatePath("/admin/storiiies");
   } catch (error) {
     return actionFailure("delete story", error);
   }
