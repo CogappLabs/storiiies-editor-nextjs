@@ -114,3 +114,16 @@ export const extractManifestOptions = (
 
   return options;
 };
+
+/**
+ * A preview-sized image. Level 0 servers only promise the full size, which is
+ * "max" in Image API 3 and "full" in Image API 2; level 1 adds width scaling.
+ */
+export const thumbnailUrl = (infoUrl: string, info: IIIFInfo) => {
+  const base = infoUrl.replace(/\/info\.json$/, "");
+  if (!JSON.stringify(info.profile ?? "").includes("level0")) {
+    return `${base}/full/400,/0/default.jpg`;
+  }
+  const isV2 = JSON.stringify(info["@context"] ?? "").includes("image/2");
+  return `${base}/full/${isV2 ? "full" : "max"}/0/default.jpg`;
+};

@@ -9,8 +9,10 @@ import type {
 export interface IIIFInfo {
   width: number;
   height: number;
+  "@context"?: unknown;
   "@id"?: string;
   id?: string;
+  profile?: unknown;
 }
 
 export type Rect = { x: number; y: number; width: number; height: number };

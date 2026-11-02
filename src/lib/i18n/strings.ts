@@ -34,6 +34,7 @@ const en = {
     infoLabel: "IIIF Image URL",
     infoPlaceholder: "https://example.com/iiif/image/info.json",
     infoHint: "Paste either an IIIF image info.json URL or an IIIF manifest.",
+    previewAlt: "Preview of the selected image",
     validate: "Validate",
     validating: "Checking...",
     validIIIF: (width: number, height: number) =>

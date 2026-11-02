@@ -9,6 +9,7 @@ import {
   isInfoResponse,
   type ManifestCanvasOption,
   normalizeInfoUrl,
+  thumbnailUrl,
 } from "@/lib/iiif-manifest";
 import type { IIIFInfo } from "@/lib/types";
 import {
@@ -28,6 +29,7 @@ const CreateStoryForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [iiifInfo, setIiifInfo] = useState<IIIFInfo | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [manifestOptions, setManifestOptions] = useState<
     ManifestCanvasOption[]
   >([]);
@@ -43,6 +45,7 @@ const CreateStoryForm = () => {
 
   const resetImageState = () => {
     setIiifInfo(null);
+    setPreview(null);
     setManifestOptions([]);
     setSelectedManifestId(null);
     setError(null);
@@ -102,6 +105,7 @@ const CreateStoryForm = () => {
         }
         setIiifInfo(payload);
         setInfoUrl(normalizeInfoUrl(requestUrl));
+        setPreview(thumbnailUrl(normalizeInfoUrl(requestUrl), payload));
         setImageSourceType("url");
         return;
       }
@@ -135,18 +139,17 @@ const CreateStoryForm = () => {
     // Some manifests swap canvas width and height; info.json is authoritative.
     try {
       const response = await fetch(option.infoUrl);
-      if (response.ok) {
-        const infoJson = await response.json();
-        if (
-          typeof infoJson.width === "number" &&
-          typeof infoJson.height === "number"
-        ) {
-          setIiifInfo({ width: infoJson.width, height: infoJson.height });
-          return;
-        }
+      const info: unknown = response.ok ? await response.json() : null;
+      if (isInfoResponse(info)) {
+        setIiifInfo(info);
+        setPreview(thumbnailUrl(option.infoUrl, info));
+        return;
       }
-    } catch {}
+    } catch {
+      // Unreachable info.json: fall back to the canvas metadata.
+    }
     setIiifInfo({ width: option.width, height: option.height });
+    setPreview(option.thumbnail ?? null);
   };
 
   const handleFileUpload = async (file: File) => {
@@ -181,6 +184,7 @@ const CreateStoryForm = () => {
       const data = await response.json();
       setInfoUrl(data.infoJson);
       setIiifInfo({ width: data.width, height: data.height });
+      setPreview(URL.createObjectURL(file));
       setImageSourceType("upload");
     } catch (err) {
       setError(
@@ -341,9 +345,20 @@ const CreateStoryForm = () => {
       )}
 
       {iiifInfo && (
-        <p className="text-sm text-success">
-          {strings.createStoryForm.validIIIF(iiifInfo.width, iiifInfo.height)}
-        </p>
+        <div className="space-y-2">
+          {preview && (
+            <Image
+              src={preview}
+              alt={strings.createStoryForm.previewAlt}
+              width={400}
+              height={Math.round((400 * iiifInfo.height) / iiifInfo.width)}
+              className="max-h-48 w-auto border border-cogapp-charcoal/20 bg-cogapp-cream"
+            />
+          )}
+          <p className="text-sm text-success">
+            {strings.createStoryForm.validIIIF(iiifInfo.width, iiifInfo.height)}
+          </p>
+        </div>
       )}
 
       {error && (
