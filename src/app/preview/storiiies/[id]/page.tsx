@@ -33,6 +33,9 @@ const StoriiiesPreview = () => {
           instance = new StoriiiesViewer({
             container: "#storiiies-viewer",
             manifestUrl: manifestUrl,
+            // #annotation-N in the URL opens that annotation, and the hash
+            // follows navigation, so the address is always shareable.
+            useUrlHash: true,
           });
         } catch (err) {
           const message = err instanceof Error ? err.message : errorGeneric;

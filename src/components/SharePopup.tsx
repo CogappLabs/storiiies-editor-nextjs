@@ -8,10 +8,17 @@ import { Button, ButtonLink, Modal } from "./ui";
 interface SharePopupProps {
   storyId: string;
   manifestUrl: string;
+  /** 1-based; the Storiiies preview opens on this annotation. */
+  annotationNumber?: number;
   onClose: () => void;
 }
 
-const SharePopup = ({ storyId, manifestUrl, onClose }: SharePopupProps) => {
+const SharePopup = ({
+  storyId,
+  manifestUrl,
+  annotationNumber,
+  onClose,
+}: SharePopupProps) => {
   const [copied, setCopied] = useState(false);
   const manifestInputRef = useRef<HTMLInputElement>(null);
   const strings = useStrings();
@@ -55,7 +62,11 @@ const SharePopup = ({ storyId, manifestUrl, onClose }: SharePopupProps) => {
             {VIEWERS.map((viewer) => (
               <ButtonLink
                 key={viewer}
-                href={`/preview/${viewer}/${storyId}`}
+                href={
+                  viewer === "storiiies" && annotationNumber
+                    ? `/preview/storiiies/${storyId}#annotation-${annotationNumber}`
+                    : `/preview/${viewer}/${storyId}`
+                }
                 size="sm"
                 className="flex-1 justify-center"
               >

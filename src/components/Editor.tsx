@@ -117,6 +117,10 @@ const Editor = ({ story }: Props) => {
         <SharePopup
           storyId={story.id}
           manifestUrl={manifestUrl}
+          annotationNumber={
+            story.annotations.findIndex((a) => a.id === selectedAnnotationId) +
+              1 || undefined
+          }
           onClose={() => setShowManifestLink(false)}
         />
       )}
