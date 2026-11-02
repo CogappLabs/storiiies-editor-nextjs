@@ -1,153 +1,84 @@
 # Storiiies Editor
 
-A local-first editor for creating IIIF annotation stories. Create annotated narratives from IIIF images and preview them in multiple IIIF viewers.
+An editor for IIIF annotation stories. Pick a high-resolution image, mark up regions with text, images and audio, and publish the result as a IIIF Presentation API 3.0 manifest that any IIIF viewer can play.
 
 ## Features
 
-- Create stories from IIIF image or manifest URLs
-- Add annotations at the current viewport position
-- Resize and reposition annotations with Annotorious
-- Drag-and-drop reordering of annotations
-- Add images to annotations
-- Preview stories in multiple IIIF viewers:
-  - Storiiies Viewer
-  - Clover
-  - Mirador
-  - Annona
-- Export as IIIF Presentation API 3.0 manifests
-- Efficient tiled image rendering via IIIF Image API
+- Create stories from a IIIF image `info.json`, a IIIF manifest (pick a canvas), or an uploaded image (tiled into IIIF with sharp)
+- Add an annotation for the current view, then move or resize its box with the mouse or the keyboard
+- Attach images and audio to annotations by URL or by upload; uploaded images are resized to WebP
+- Reorder annotations by drag and drop
+- Preview in the Storiiies Viewer, Clover, Mirador and Annona
+- Admin pages for all stories (with restore) and all uploads
 
-## Tech Stack
+## Tech stack
 
-- **Framework**: Next.js 16 (App Router)
-- **Database**: PostgreSQL via Prisma (Neon recommended for serverless)
-- **Hosting**: Vercel
-- **Styling**: Tailwind CSS 4
-- **Image Viewer**: OpenSeadragon with IIIF tiled rendering
-- **Annotations**: Annotorious for OpenSeadragon
-- **Drag & Drop**: @hello-pangea/dnd
-- **Linting/Formatting**: Biome
+- **Framework**: Next.js 16 (App Router, typed routes), React 19
+- **Database**: PostgreSQL via Prisma 7 (Neon in production)
+- **Storage**: Vercel Blob for uploaded tiles and annotation media
+- **Viewer**: OpenSeadragon with an SVG annotation overlay
+- **Styling**: Tailwind CSS 4, Cogapp's Civil and Untitled Serif typefaces
+- **Tests**: Playwright end-to-end, against a throwaway local Postgres
+- **Linting/formatting**: Biome, run by Lefthook on commit
 
-## Getting Started
+## Getting started
 
-### Prerequisites
+Requires Node.js 24 and npm.
 
-- Node.js 20+
-- npm
-
-### Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone <repository-url>
-   cd storiiies-editor-local
-   ```
-
-2. Install dependencies:
+1. Install dependencies:
 
    ```bash
    npm install
    ```
 
-3. Set up environment variables:
+2. Create `.env.local` (or run `vercel env pull .env.local`) with:
+
+   | Variable | Purpose |
+   | --- | --- |
+   | `POSTGRES_PRISMA_URL` | Pooled connection used by the app |
+   | `POSTGRES_URL_NON_POOLING` | Direct connection used by the Prisma CLI |
+   | `BLOB_READ_WRITE_TOKEN` | Vercel Blob, for uploads |
+   | `BASIC_AUTH_USER`, `BASIC_AUTH_PASSWORD` | Optional; turns on basic auth |
+
+3. Push the schema and start the dev server:
 
    ```bash
-   cp .env.example .env.local
-   ```
-
-   For local development, you can either:
-   - Use a Neon database (recommended) - add your connection strings to `.env.local`
-   - Pull env vars from Vercel: `vercel env pull .env.local`
-
-4. Initialize the database:
-
-   ```bash
-   npx prisma generate
-   npx prisma migrate dev
-   ```
-
-5. Start the development server:
-
-   ```bash
+   npx prisma db push
    npm run dev
    ```
 
-6. Open [http://localhost:3000](http://localhost:3000)
+4. Open [http://localhost:3000](http://localhost:3000).
 
-## Project Structure
-
-```
-src/
-├── app/                    # Next.js App Router pages
-│   ├── admin/              # Admin dashboard
-│   ├── api/                # API routes (manifest generation)
-│   ├── editor/             # Story editor
-│   └── preview/            # Viewer previews (storiiies, clover, mirador, annona)
-├── components/             # React components
-│   ├── ui/                 # Reusable UI components (Button, Header, etc.)
-│   ├── Editor.tsx          # Main editor component
-│   ├── AnnotatedViewer.tsx # OpenSeadragon viewer with annotations
-│   └── AnnotationList.tsx  # Draggable annotation list
-├── lib/                    # Utilities and server actions
-└── generated/              # Prisma generated client
-```
+The project uses `prisma db push` rather than migrations.
 
 ## Usage
 
-1. **Create a Story**: Paste a IIIF image `info.json` URL or a full IIIF manifest. If it’s a manifest, pick the desired canvas from the list of previews.
-2. **Add Annotations**: Navigate to your desired view, then click "Add" to create an annotation at the current viewport
-3. **Adjust Region**: Resize or reposition the annotation rectangle as needed
-4. **Edit Content**: Add text and optional images to each annotation
-5. **Reorder**: Drag annotations to change their order in the story
-6. **Preview**: Use the "Share" button to preview in different IIIF viewers
-7. **Export**: Copy the manifest URL to use in any IIIF-compatible viewer
+1. **Create a story**: paste an `info.json` URL or a manifest (then pick a canvas), or upload an image. A preview confirms the image before you add a title.
+2. **Add annotations**: pan and zoom to a region, then click **Add**. The new annotation covers the current view.
+3. **Adjust the region**: select an annotation and drag its box or handles. With the box focused, the arrow keys move it and Shift with the arrow keys resizes it.
+4. **Edit content**: add text, then images and audio by URL or upload.
+5. **Reorder**: drag annotations in the list, or use the drag handle with the keyboard.
+6. **Preview and share**: open the story in any of the four viewers, or copy its manifest URL.
 
 ## Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npx biome check` - Run linting and formatting checks
-- `npx biome check --write` - Auto-fix linting and formatting issues
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Production build |
+| `npm run lint` | Biome check |
+| `npm run typecheck` | Generate Next route types, then `tsc --noEmit` |
+| `npm run test:e2e` | Playwright suite on a throwaway Postgres and its own server (port 3100) |
 
-## Deployment (Vercel + Neon)
+The e2e suite never touches the shared database. The upload test uses real Blob storage, deletes what it uploads, and skips without `BLOB_READ_WRITE_TOKEN`.
 
-### 1. Deploy to Vercel
+## Deployment
 
-1. Push your repository to GitHub
-2. Import the project on [Vercel](https://vercel.com)
-3. Vercel will auto-detect Next.js settings
+The app runs on Vercel with a Neon database from the Vercel Marketplace, which fills in the Postgres variables. Add a Blob store for `BLOB_READ_WRITE_TOKEN`. Apply schema changes with `npx prisma db push` against the production database; the build does not change the schema.
 
-### 2. Add Neon Database
+With basic auth set, every route except `/api/manifest/*` needs a login, so external viewers can still load manifests.
 
-1. In your Vercel project, go to **Storage** tab
-2. Click **Connect Store** → **Browse Marketplace** → **Neon**
-3. Create a new Neon database (or link existing)
-4. Environment variables `POSTGRES_PRISMA_URL` and `POSTGRES_URL_NON_POOLING` will be auto-populated
-
-### 3. Run Migrations
-
-Migrations run automatically on build via the `prisma migrate deploy` command in the build script.
-
-For manual migration:
-```bash
-vercel env pull .env.local
-npx prisma migrate deploy
-```
-
-### 4. Basic Auth (Optional)
-
-To protect the app with basic authentication, set these environment variables in Vercel:
-
-- `BASIC_AUTH_USER` - Username
-- `BASIC_AUTH_PASSWORD` - Password
-
-If not set, authentication is disabled.
-
-## Todo
-
-- [ ] Handle manifest inputs on the homepage: if a user pastes a manifest instead of an `info.json`, parse its canvases, show a picker UI for each image, and then continue using the chosen canvas' `info.json`.
+GitHub Actions runs lint, types and the e2e suite (against a Postgres service container) on every push and pull request.
 
 ## License
 
