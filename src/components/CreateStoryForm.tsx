@@ -262,6 +262,13 @@ const CreateStoryForm = () => {
                 setInfoUrl(e.target.value);
                 resetImageState();
               }}
+              onKeyDown={(e) => {
+                // Enter would submit the story form before the URL is checked.
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  validateIIIF();
+                }
+              }}
               placeholder={strings.createStoryForm.infoPlaceholder}
               className="flex-1 min-w-0 px-3 py-2 border border-cogapp-charcoal/20 rounded"
               required={sourceMode === "url"}

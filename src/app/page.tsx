@@ -15,7 +15,7 @@ const Home = async () => {
       <Header title={strings.app.title} subtitle={strings.app.subtitle} />
 
       <main className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <section className={`${panelClass} p-6`}>
             <h2 className="text-lg font-semibold mb-4">
               {strings.home.createSectionTitle}

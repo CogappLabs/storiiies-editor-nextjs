@@ -19,23 +19,25 @@ const Header = <T extends string>({
 }: HeaderProps<T>) => (
   <header className="bg-cogapp-charcoal">
     <div
-      className={`${fullWidth ? "" : "max-w-6xl mx-auto"} px-4 py-6 flex items-center justify-between`}
+      className={`${fullWidth ? "" : "max-w-6xl mx-auto"} px-4 py-4 md:py-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3`}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 min-w-0">
         {backLink && (
           <Link
             href={backLink.href}
-            className="text-sm text-cogapp-cream hover:text-white"
+            className="text-sm text-cogapp-cream hover:text-white whitespace-nowrap"
           >
             ← {backLink.label}
           </Link>
         )}
         <div>
-          <h1 className="text-2xl font-bold text-white">{title}</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-white">{title}</h1>
           {subtitle && <p className="text-cogapp-cream mt-1">{subtitle}</p>}
         </div>
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && (
+        <div className="flex flex-wrap items-center gap-2">{actions}</div>
+      )}
     </div>
   </header>
 );

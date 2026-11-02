@@ -28,7 +28,7 @@ const sizeStyles: Record<Size, string> = {
 
 const classes = ({ variant = "primary", size = "md", className }: StyleProps) =>
   [
-    "group inline-flex items-center font-medium leading-7 border transition-colors",
+    "group inline-flex items-center whitespace-nowrap font-medium leading-7 border transition-colors",
     "disabled:opacity-50 disabled:cursor-not-allowed",
     variantStyles[variant],
     sizeStyles[size],
