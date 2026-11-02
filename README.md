@@ -33,12 +33,12 @@ Requires Node.js 24 and npm.
 
 2. Create `.env.local` (or run `vercel env pull .env.local`) with:
 
-   | Variable | Purpose |
-   | --- | --- |
-   | `POSTGRES_PRISMA_URL` | Pooled connection used by the app |
-   | `POSTGRES_URL_NON_POOLING` | Direct connection used by the Prisma CLI |
-   | `BLOB_READ_WRITE_TOKEN` | Vercel Blob, for uploads |
-   | `BASIC_AUTH_USER`, `BASIC_AUTH_PASSWORD` | Optional; turns on basic auth |
+   | Variable                                 | Purpose                                  |
+   | ---------------------------------------- | ---------------------------------------- |
+   | `POSTGRES_PRISMA_URL`                    | Pooled connection used by the app        |
+   | `POSTGRES_URL_NON_POOLING`               | Direct connection used by the Prisma CLI |
+   | `BLOB_READ_WRITE_TOKEN`                  | Vercel Blob, for uploads                 |
+   | `BASIC_AUTH_USER`, `BASIC_AUTH_PASSWORD` | Optional; turns on basic auth            |
 
 3. Push the schema and start the dev server:
 
@@ -62,13 +62,13 @@ The project uses `prisma db push` rather than migrations.
 
 ## Scripts
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Start the development server |
-| `npm run build` | Production build |
-| `npm run lint` | Biome check |
-| `npm run typecheck` | Generate Next route types, then `tsc --noEmit` |
-| `npm run test:e2e` | Playwright suite on a throwaway Postgres and its own server (port 3100) |
+| Command             | What it does                                                            |
+| ------------------- | ----------------------------------------------------------------------- |
+| `npm run dev`       | Start the development server                                            |
+| `npm run build`     | Production build                                                        |
+| `npm run lint`      | Biome check                                                             |
+| `npm run typecheck` | Generate Next route types, then `tsc --noEmit`                          |
+| `npm run test:e2e`  | Playwright suite on a throwaway Postgres and its own server (port 3100) |
 
 The e2e suite never touches the shared database. The upload test uses real Blob storage, deletes what it uploads, and skips without `BLOB_READ_WRITE_TOKEN`.
 
