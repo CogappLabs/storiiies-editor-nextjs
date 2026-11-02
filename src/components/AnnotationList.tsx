@@ -131,7 +131,7 @@ const AnnotationList = ({
   };
 
   const errorMessage = error && (
-    <p role="alert" className="mb-2 text-sm text-red-600">
+    <p role="alert" className="mb-2 text-sm text-danger">
       {error}
     </p>
   );
@@ -140,7 +140,7 @@ const AnnotationList = ({
     return (
       <>
         {errorMessage}
-        <div className="text-gray-500 text-center py-8">
+        <div className="text-cogapp-gray text-center py-8">
           {strings.annotationList.noItems}
         </div>
       </>
@@ -167,10 +167,10 @@ const AnnotationList = ({
                   <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    className={`p-3 rounded-md border ${
+                    className={`p-3 border ${
                       selectedId === annotation.id
                         ? "border-cogapp-lavender bg-cogapp-lavender"
-                        : "border-gray-200 bg-white"
+                        : "border-cogapp-charcoal/20 bg-white"
                     } ${snapshot.isDragging ? "shadow-lg" : ""} ${
                       isPending ? "opacity-50" : ""
                     }`}
@@ -181,7 +181,7 @@ const AnnotationList = ({
                         {...provided.dragHandleProps}
                         role="button"
                         tabIndex={0}
-                        className="mt-1 cursor-grab text-gray-400 hover:text-gray-600 rounded"
+                        className="mt-1 cursor-grab text-cogapp-gray hover:text-cogapp-charcoal rounded"
                         aria-label={strings.annotationList.dragHandle}
                       >
                         <svg
@@ -207,7 +207,7 @@ const AnnotationList = ({
                               aria-label={strings.newAnnotationForm.textLabel}
                               value={editText}
                               onChange={(e) => setEditText(e.target.value)}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                              className="w-full px-2 py-1 border border-cogapp-charcoal/20 rounded text-sm"
                               rows={3}
                             />
                             <MediaFieldList
@@ -249,12 +249,12 @@ const AnnotationList = ({
                               aria-pressed={selectedId === annotation.id}
                               className="block w-full text-left rounded"
                             >
-                              <span className="block text-xs text-gray-500 mb-1">
+                              <span className="block text-xs text-cogapp-gray mb-1">
                                 {index + 1}
                               </span>
                               <span className="block text-sm whitespace-pre-wrap">
                                 {annotation.text || (
-                                  <span className="text-gray-400 italic">
+                                  <span className="text-cogapp-gray italic">
                                     {strings.annotationList.noText}
                                   </span>
                                 )}
@@ -290,12 +290,12 @@ const AnnotationList = ({
                               </div>
                             )}
                             <details className="mt-2 text-xs">
-                              <summary className="cursor-pointer text-gray-600 hover:text-gray-800 rounded">
+                              <summary className="cursor-pointer text-cogapp-gray hover:text-cogapp-charcoal rounded">
                                 {strings.annotationList.dataSummary}
                               </summary>
-                              <div className="mt-1 p-2 bg-gray-50 rounded text-gray-500 font-mono space-y-1 break-all overflow-hidden">
+                              <div className="mt-1 p-2 bg-cogapp-cream rounded text-cogapp-gray font-mono space-y-1 break-all overflow-hidden">
                                 <div>
-                                  <span className="text-gray-400">
+                                  <span className="text-cogapp-gray">
                                     {strings.annotationList.rectLabel}:
                                   </span>{" "}
                                   x={Math.round(annotation.x)}, y=
@@ -305,7 +305,7 @@ const AnnotationList = ({
                                 </div>
                                 {annotation.viewportX !== null && (
                                   <div>
-                                    <span className="text-gray-400">
+                                    <span className="text-cogapp-gray">
                                       {strings.annotationList.viewportLabel}:
                                     </span>{" "}
                                     x={Math.round(annotation.viewportX)}, y=
@@ -317,7 +317,7 @@ const AnnotationList = ({
                                 )}
                                 {annotation.images.length > 0 && (
                                   <div>
-                                    <span className="text-gray-400">
+                                    <span className="text-cogapp-gray">
                                       {strings.annotationList.imagesLabel}:
                                     </span>{" "}
                                     {annotation.images
@@ -327,7 +327,7 @@ const AnnotationList = ({
                                 )}
                                 {annotation.audio.length > 0 && (
                                   <div>
-                                    <span className="text-gray-400">
+                                    <span className="text-cogapp-gray">
                                       {strings.annotationList.audioLabel}:
                                     </span>{" "}
                                     {annotation.audio
@@ -346,7 +346,7 @@ const AnnotationList = ({
                           <button
                             type="button"
                             onClick={() => startEditing(annotation)}
-                            className="p-1 text-gray-400 hover:text-gray-600 rounded"
+                            className="p-1 text-cogapp-gray hover:text-cogapp-charcoal rounded"
                             aria-label={strings.annotationList.editAria}
                           >
                             <svg
@@ -368,7 +368,7 @@ const AnnotationList = ({
                           <button
                             type="button"
                             onClick={() => handleDelete(annotation.id)}
-                            className="p-1 text-gray-400 hover:text-red-600 rounded"
+                            className="p-1 text-cogapp-gray hover:text-danger rounded"
                             aria-label={strings.annotationList.deleteAria}
                           >
                             <svg

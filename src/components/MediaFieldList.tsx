@@ -78,7 +78,7 @@ const MediaFieldList = ({ kind, label, fields, setFields }: Props) => {
             value={field.value}
             onChange={(e) => setValue(field.id, e.target.value)}
             disabled={uploadingId === field.id}
-            className="flex-1 min-w-0 px-2 py-1 border rounded text-sm disabled:bg-gray-100"
+            className="flex-1 min-w-0 px-2 py-1 border rounded text-sm disabled:bg-cogapp-cream"
             placeholder={
               isImage ? strings.imagePlaceholder : strings.audioPlaceholder
             }
@@ -111,7 +111,7 @@ const MediaFieldList = ({ kind, label, fields, setFields }: Props) => {
         </div>
       ))}
       {error && (
-        <p role="alert" className="mb-2 text-sm text-red-600">
+        <p role="alert" className="mb-2 text-sm text-danger">
           {error}
         </p>
       )}

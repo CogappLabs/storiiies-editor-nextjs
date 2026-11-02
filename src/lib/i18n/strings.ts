@@ -187,7 +187,6 @@ const en = {
     },
     imageTableHeaders: {
       filename: "Filename",
-      dimensions: "Dimensions",
       usedBy: "Used By",
       created: "Created",
       actions: "Actions",
@@ -203,12 +202,10 @@ const en = {
       manifest: "Manifest",
       viewInfoJson: "info.json",
     },
-    status: {
-      active: "Active",
-      deleted: "Deleted",
-    },
+    deleted: "Deleted",
     notUsed: "Not used",
     deleteImageConfirm: "Delete this image? This cannot be undone.",
+    deleteImageFailed: "Failed to delete image",
   },
 } as const;
 

@@ -36,7 +36,7 @@ const Modal = ({
       />
       <div
         ref={dialogRef}
-        className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4"
+        className="relative bg-white shadow-xl max-w-md w-full mx-4"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -54,7 +54,7 @@ const Modal = ({
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 rounded"
+            className="text-cogapp-gray hover:text-cogapp-charcoal rounded"
             aria-label={strings.common.close}
           >
             ✕

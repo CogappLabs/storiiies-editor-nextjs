@@ -48,7 +48,7 @@ const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
     >
       <form action={handleUpdateStory} className="space-y-4">
         {error && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-danger">
             {error}
           </p>
         )}

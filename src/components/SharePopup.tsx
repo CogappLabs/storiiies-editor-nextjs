@@ -37,17 +37,17 @@ const SharePopup = ({ storyId, manifestUrl, onClose }: SharePopupProps) => {
             readOnly
             aria-label={strings.sharePopup.title}
             ref={manifestInputRef}
-            className="flex-1 px-3 py-2 border rounded text-sm bg-gray-50"
+            className="flex-1 px-3 py-2 border rounded text-sm bg-cogapp-cream"
           />
           <Button onClick={copyManifestUrl}>
             {copied ? strings.sharePopup.copied : strings.sharePopup.copy}
           </Button>
         </div>
-        <p className="text-xs text-gray-500" id="share-dialog-description">
+        <p className="text-xs text-cogapp-gray" id="share-dialog-description">
           {strings.sharePopup.instructions}
         </p>
         <div className="pt-4 border-t">
-          <p className="text-xs text-gray-500 mb-2">
+          <p className="text-xs text-cogapp-gray mb-2">
             {strings.sharePopup.previewHeading}
           </p>
           <div className="flex gap-2 flex-wrap">

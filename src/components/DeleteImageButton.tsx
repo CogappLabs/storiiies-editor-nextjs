@@ -20,7 +20,7 @@ const DeleteImageButton = ({ imageId }: DeleteImageButtonProps) => {
         router.refresh();
       } else {
         const data = await response.json();
-        alert(data.error || "Failed to delete image");
+        alert(data.error || strings.admin.deleteImageFailed);
       }
     }
   };
@@ -29,7 +29,7 @@ const DeleteImageButton = ({ imageId }: DeleteImageButtonProps) => {
     <button
       type="button"
       onClick={handleDelete}
-      className="text-sm text-red-600 hover:underline rounded"
+      className="text-sm text-danger hover:underline rounded"
     >
       {strings.admin.actionLabels.delete}
     </button>

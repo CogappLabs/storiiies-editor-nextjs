@@ -768,7 +768,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
             <button
               type="button"
               onClick={handleZoomIn}
-              className="bg-white hover:bg-gray-100 p-2 rounded shadow border"
+              className="bg-white hover:bg-cogapp-cream p-2 rounded shadow border"
               aria-label={strings.viewerControls.zoomIn}
             >
               <svg
@@ -789,7 +789,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
             <button
               type="button"
               onClick={handleZoomOut}
-              className="bg-white hover:bg-gray-100 p-2 rounded shadow border"
+              className="bg-white hover:bg-cogapp-cream p-2 rounded shadow border"
               aria-label={strings.viewerControls.zoomOut}
             >
               <svg
@@ -810,7 +810,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
             <button
               type="button"
               onClick={handleHome}
-              className="bg-white hover:bg-gray-100 p-2 rounded shadow border"
+              className="bg-white hover:bg-cogapp-cream p-2 rounded shadow border"
               aria-label={strings.viewerControls.resetView}
             >
               <svg
@@ -834,7 +834,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
               className={`p-2 rounded shadow border ${
                 showCrosshairs
                   ? "bg-cogapp-charcoal text-cogapp-cream border-cogapp-charcoal hover:bg-cogapp-charcoal/90"
-                  : "bg-white hover:bg-gray-100"
+                  : "bg-white hover:bg-cogapp-cream"
               }`}
               aria-label={
                 showCrosshairs

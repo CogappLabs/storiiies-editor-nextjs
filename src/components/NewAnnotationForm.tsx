@@ -58,7 +58,7 @@ const NewAnnotationForm = ({
   };
 
   return (
-    <div className="mb-4 p-3 border-2 border-cogapp-lavender rounded-md bg-cogapp-lavender/40">
+    <div className="mb-4 p-3 border-2 border-cogapp-lavender bg-cogapp-lavender/40">
       <label htmlFor={textAreaId} className="block text-sm font-medium mb-2">
         {strings.newAnnotationForm.textLabel}
       </label>
@@ -90,7 +90,7 @@ const NewAnnotationForm = ({
       </div>
 
       {error && (
-        <p role="alert" className="mt-3 text-sm text-red-600">
+        <p role="alert" className="mt-3 text-sm text-danger">
           {error}
         </p>
       )}

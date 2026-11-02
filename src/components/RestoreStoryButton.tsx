@@ -2,6 +2,7 @@
 
 import { restoreStory } from "@/lib/actions";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
+import { textLinkClass } from "./ui";
 
 interface RestoreStoryButtonProps {
   storyId: string;
@@ -16,11 +17,7 @@ const RestoreStoryButton = ({ storyId }: RestoreStoryButtonProps) => {
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleRestore}
-      className="text-sm text-cogapp-charcoal underline decoration-cogapp-charcoal/30 hover:decoration-cogapp-charcoal"
-    >
+    <button type="button" onClick={handleRestore} className={textLinkClass}>
       {strings.admin.actionLabels.restore}
     </button>
   );

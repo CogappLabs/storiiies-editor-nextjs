@@ -73,7 +73,7 @@ const StoriiiesPreview = () => {
       />
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 text-center">{error}</div>
+        <div className="bg-danger/10 text-danger p-4 text-center">{error}</div>
       )}
 
       <div id="storiiies-viewer" className="flex-1" />

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import CreateStoryForm from "@/components/CreateStoryForm";
-import { Header } from "@/components/ui";
+import { Header, panelClass } from "@/components/ui";
 import { getStories } from "@/lib/actions";
 import { formatDate, getStrings } from "@/lib/i18n/strings";
 
@@ -16,14 +16,14 @@ export default async function Home() {
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <section className="bg-white rounded-lg shadow p-6">
+          <section className={`${panelClass} p-6`}>
             <h2 className="text-lg font-semibold mb-4">
               {strings.home.createSectionTitle}
             </h2>
             <CreateStoryForm />
           </section>
 
-          <section className="bg-white rounded-lg shadow p-6">
+          <section className={`${panelClass} p-6`}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">
                 {strings.home.allStoriesTitle}
@@ -37,22 +37,24 @@ export default async function Home() {
             </div>
 
             {stories.length === 0 ? (
-              <p className="text-gray-500">{strings.home.noStoriesMessage}</p>
+              <p className="text-cogapp-gray">
+                {strings.home.noStoriesMessage}
+              </p>
             ) : (
               <div className="space-y-3">
                 {stories.map((story) => (
                   <Link
                     key={story.id}
                     href={`/editor/${story.id}`}
-                    className="block p-4 border rounded-lg hover:border-cogapp-lavender hover:bg-cogapp-lavender transition-colors"
+                    className="block p-4 border border-cogapp-charcoal/20 hover:border-cogapp-charcoal hover:bg-cogapp-cream/50 transition-colors"
                   >
                     <h3 className="font-medium">{story.title}</h3>
                     {story.author && (
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-cogapp-gray">
                         {strings.home.byAuthor(story.author)}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-4 mt-2 text-xs text-cogapp-gray">
                       <span>
                         {strings.home.storyAnnotationsLabel(
                           story._count.annotations,

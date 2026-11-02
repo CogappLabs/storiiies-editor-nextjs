@@ -1,7 +1,7 @@
 import Link from "next/link";
 import DeleteStoryButton from "@/components/DeleteStoryButton";
 import RestoreStoryButton from "@/components/RestoreStoryButton";
-import { Header } from "@/components/ui";
+import { Header, panelClass, textLinkClass } from "@/components/ui";
 import { getAllStories } from "@/lib/actions";
 import { formatDate, getStrings } from "@/lib/i18n/strings";
 
@@ -12,9 +12,6 @@ const isDev = process.env.NODE_ENV === "development";
 type Story = Awaited<ReturnType<typeof getAllStories>>[number];
 type Strings = ReturnType<typeof getStrings>;
 
-const linkClass =
-  "text-sm text-cogapp-charcoal underline decoration-cogapp-charcoal/30 hover:decoration-cogapp-charcoal";
-
 const StoryTable = ({
   stories,
   strings,
@@ -24,7 +21,7 @@ const StoryTable = ({
 }) => {
   const { admin } = strings;
   return (
-    <div className="overflow-x-auto bg-white border border-cogapp-charcoal/10">
+    <div className={`${panelClass} overflow-x-auto`}>
       <table className="w-full text-left">
         <thead className="border-b border-cogapp-charcoal/10 text-xs text-cogapp-gray">
           <tr>
@@ -88,7 +85,7 @@ const StoryTable = ({
                       <>
                         <Link
                           href={`/editor/${story.id}`}
-                          className="text-sm font-medium text-cogapp-charcoal underline decoration-cogapp-charcoal/30 hover:decoration-cogapp-charcoal mr-3"
+                          className={`${textLinkClass} font-medium mr-3`}
                         >
                           {admin.actionLabels.edit}
                         </Link>
@@ -106,7 +103,7 @@ const StoryTable = ({
                           <Link
                             key={viewer}
                             href={`/preview/${viewer}/${story.id}`}
-                            className={linkClass}
+                            className={textLinkClass}
                           >
                             {label}
                           </Link>
@@ -115,7 +112,7 @@ const StoryTable = ({
                           href={`/api/manifest/${story.id}`}
                           target="_blank"
                           rel="noopener"
-                          className={linkClass}
+                          className={textLinkClass}
                         >
                           {admin.actionLabels.manifest}
                         </a>
@@ -152,7 +149,7 @@ export default async function AdminStoriiies() {
       />
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {active.length === 0 ? (
-          <p className="bg-white border border-cogapp-charcoal/10 p-8 text-center text-cogapp-gray">
+          <p className={`${panelClass} p-8 text-center text-cogapp-gray`}>
             {strings.admin.noStories}
           </p>
         ) : (

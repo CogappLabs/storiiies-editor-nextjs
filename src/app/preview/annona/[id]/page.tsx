@@ -80,7 +80,7 @@ const AnnonaPreview = () => {
         {scriptsLoaded ? (
           <div ref={storyboardRef} className="h-full w-full" />
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-cogapp-gray">
             {strings.preview.loadingAnnona}
           </div>
         )}

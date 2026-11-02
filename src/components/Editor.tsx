@@ -12,14 +12,19 @@ import SharePopup from "./SharePopup";
 import StorySettingsModal from "./StorySettingsModal";
 import { Button, Header } from "./ui";
 
-// Dynamic import for the viewer (uses OpenSeadragon which needs window)
+const ViewerLoading = () => {
+  const strings = useStrings();
+  return (
+    <div className="h-full w-full flex items-center justify-center bg-cogapp-cream">
+      {strings.preview.loadingViewer}
+    </div>
+  );
+};
+
+// OpenSeadragon needs window, so the viewer is client-only.
 const AnnotatedViewer = dynamic(() => import("./AnnotatedViewer"), {
   ssr: false,
-  loading: () => (
-    <div className="h-full w-full flex items-center justify-center bg-gray-100">
-      Loading viewer...
-    </div>
-  ),
+  loading: ViewerLoading,
 });
 
 interface Props {
@@ -151,7 +156,7 @@ const Editor = ({ story }: Props) => {
                 {strings.editor.annotationsHeading}
               </h2>
               <output
-                className={`text-xs ${saveStatus === "error" ? "text-red-600" : "text-gray-500"}`}
+                className={`text-xs ${saveStatus === "error" ? "text-danger" : "text-cogapp-gray"}`}
               >
                 {saveStatus !== "idle" &&
                   strings.editor[
