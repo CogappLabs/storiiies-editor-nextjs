@@ -2,8 +2,8 @@ import Link from "next/link";
 import DeleteStoryButton from "@/components/DeleteStoryButton";
 import RestoreStoryButton from "@/components/RestoreStoryButton";
 import { Header, panelClass, textLinkClass } from "@/components/ui";
-import { getAllStories } from "@/lib/actions";
 import { formatDate, getStrings } from "@/lib/i18n/strings";
+import { getAllStories } from "@/lib/queries";
 import { VIEWERS } from "@/lib/viewers";
 
 export const dynamic = "force-dynamic";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
-import { createAnnotation } from "@/lib/actions";
+import { createAnnotation } from "@/lib/actions/annotations";
 import type { MediaField } from "@/lib/form-utils";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { AnnotationBounds } from "@/lib/types";

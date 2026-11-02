@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { updateAnnotation } from "@/lib/actions";
+import { updateAnnotation } from "@/lib/actions/annotations";
 import { useManifestUrl } from "@/lib/hooks/useManifestUrl";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { AnnotationBounds, Rect, StoryWithAnnotations } from "@/lib/types";

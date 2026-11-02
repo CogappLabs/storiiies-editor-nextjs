@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteStory } from "@/lib/actions";
+import { deleteStory } from "@/lib/actions/stories";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 
 interface DeleteStoryButtonProps {

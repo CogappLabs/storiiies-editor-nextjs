@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 import Editor from "@/components/Editor";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ButtonLink, Header, panelClass } from "@/components/ui";
-import { getStory, isStoryDeleted } from "@/lib/actions";
 import { getStrings } from "@/lib/i18n/strings";
+import { getStory, isStoryDeleted } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 

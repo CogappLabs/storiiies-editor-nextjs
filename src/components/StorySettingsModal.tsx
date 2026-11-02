@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import type { Story } from "@/generated/prisma/client";
-import { deleteStory, updateStory } from "@/lib/actions";
+import { deleteStory, updateStory } from "@/lib/actions/stories";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import { Button, Modal } from "./ui";
 

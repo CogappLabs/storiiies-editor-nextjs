@@ -72,7 +72,8 @@ src/
     CreateStoryForm.tsx   # Story creation with IIIF image validation
     ui/                   # Shared UI components (Button, Header, Modal)
   lib/
-    actions.ts            # Server actions (all DB mutations)
+    actions/              # Server actions: stories.ts, annotations.ts, shared.ts
+    queries.ts            # Reads for server components
     blob.ts               # Vercel Blob storage helpers
     iiif.ts               # IIIF tile generation with sharp
     form-utils.ts         # Form field state helpers
@@ -88,7 +89,7 @@ prisma/
 
 ## Key Patterns
 
-- **Server actions** (`src/lib/actions.ts`): All database mutations go through server actions. They validate inputs and call `revalidatePath()` after writes. Mutations return `{ error }` instead of throwing, because Next hides thrown messages in production; callers must check the result.
+- **Server actions** (`src/lib/actions/`): All database mutations go through server actions, split by domain. Reads live in `src/lib/queries.ts`, outside `"use server"`, so they are not exposed as callable endpoints. They validate inputs and call `revalidatePath()` after writes. Mutations return `{ error }` instead of throwing, because Next hides thrown messages in production; callers must check the result.
 - **Auth**: `src/proxy.ts` applies basic auth to everything except `/api/manifest`, which external viewers load.
 - **Turbopack HMR workaround**: OpenSeadragon instances are stored in a `WeakMap` outside React state (`AnnotatedViewer.tsx`) to prevent Turbopack from trying to serialize them. Preview pages must not store viewer instances in React refs/state for the same reason.
 - **IIIF manifests**: Generated dynamically at `/api/manifest/[id]`. Annotations become IIIF annotations with `TextualBody` and `Sound` bodies. Annotation images are embedded as `<img>` in a `text/html` TextualBody, because StoriiiesViewer ignores separate `Image` bodies.

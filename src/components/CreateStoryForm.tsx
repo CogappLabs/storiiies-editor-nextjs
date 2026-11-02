@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { createStory } from "@/lib/actions";
+import { createStory } from "@/lib/actions/stories";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { IIIFInfo } from "@/lib/types";
 import {

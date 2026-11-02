@@ -1,8 +1,8 @@
 import Link from "next/link";
 import DeleteImageButton from "@/components/DeleteImageButton";
 import { Header, panelClass, textLinkClass } from "@/components/ui";
-import { getUploadedImages } from "@/lib/actions";
 import { formatDate, getStrings } from "@/lib/i18n/strings";
+import { getUploadedImages } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 

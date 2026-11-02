@@ -1,8 +1,8 @@
 import Link from "next/link";
 import CreateStoryForm from "@/components/CreateStoryForm";
 import { Header, panelClass } from "@/components/ui";
-import { getStories } from "@/lib/actions";
 import { formatDate, getStrings } from "@/lib/i18n/strings";
+import { getStories } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 

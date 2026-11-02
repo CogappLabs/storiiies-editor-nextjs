@@ -14,7 +14,7 @@ import {
   updateAnnotation,
   updateAnnotationAudio,
   updateAnnotationImages,
-} from "@/lib/actions";
+} from "@/lib/actions/annotations";
 import type { MediaField } from "@/lib/form-utils";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { AnnotationWithMedia } from "@/lib/types";

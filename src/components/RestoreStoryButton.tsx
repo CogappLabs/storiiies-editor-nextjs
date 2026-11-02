@@ -1,6 +1,6 @@
 "use client";
 
-import { restoreStory } from "@/lib/actions";
+import { restoreStory } from "@/lib/actions/stories";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import { textLinkClass } from "./ui";
 
