@@ -193,29 +193,9 @@ const CreateStoryForm = () => {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setDragOver(false);
+  const uploadFirst = (files: FileList | null) => {
+    const file = files?.[0];
+    if (file) handleFileUpload(file);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -241,37 +221,31 @@ const CreateStoryForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
-      <div className="flex border-b">
-        <button
-          type="button"
-          onClick={() => {
-            setSourceMode("url");
-            resetImageState();
-            setInfoUrl("");
-          }}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-            sourceMode === "url"
-              ? "border-cogapp-lavender text-cogapp-charcoal"
-              : "border-transparent text-cogapp-gray hover:text-cogapp-charcoal"
-          }`}
-        >
-          {strings.createStoryForm.sourceTabUrl}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setSourceMode("upload");
-            resetImageState();
-            setInfoUrl("");
-          }}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-            sourceMode === "upload"
-              ? "border-cogapp-lavender text-cogapp-charcoal"
-              : "border-transparent text-cogapp-gray hover:text-cogapp-charcoal"
-          }`}
-        >
-          {strings.createStoryForm.sourceTabUpload}
-        </button>
+      <div className="flex border-b border-cogapp-charcoal/20">
+        {(
+          [
+            ["url", strings.createStoryForm.sourceTabUrl],
+            ["upload", strings.createStoryForm.sourceTabUpload],
+          ] as const
+        ).map(([mode, label]) => (
+          <button
+            key={mode}
+            type="button"
+            aria-pressed={sourceMode === mode}
+            onClick={() => {
+              setSourceMode(mode);
+              resetImageState();
+              setInfoUrl("");
+            }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
+              sourceMode === mode
+                ? "border-cogapp-charcoal text-cogapp-charcoal"
+                : "border-transparent text-cogapp-gray hover:text-cogapp-charcoal"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {sourceMode === "url" && (
@@ -316,9 +290,16 @@ const CreateStoryForm = () => {
             {strings.createStoryForm.uploadLabel}
           </span>
           <label
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              uploadFirst(e.dataTransfer.files);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
             className={`block border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
               dragOver
                 ? "border-cogapp-lavender bg-cogapp-lavender/10"
@@ -328,7 +309,7 @@ const CreateStoryForm = () => {
             <input
               type="file"
               accept="image/*"
-              onChange={handleFileChange}
+              onChange={(e) => uploadFirst(e.target.files)}
               className="sr-only"
             />
             {uploading ? (
