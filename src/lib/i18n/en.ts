@@ -161,6 +161,8 @@ export const en = {
       "Story images and annotation media uploaded to the editor",
     storiesCount: (count: number) => `${count} stories`,
     deletedStories: (count: number) => `Deleted stories (${count})`,
+    usedByDeletedStories: (count: number) =>
+      `Used only by deleted stories (${count})`,
     byAuthor: (author: string) => `by ${author}`,
     deletedOn: (date: string) => `Deleted ${date}`,
     previewLabel: "Preview",
