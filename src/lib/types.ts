@@ -13,6 +13,7 @@ export interface IIIFInfo {
   "@id"?: string;
   id?: string;
   profile?: unknown;
+  tiles?: { scaleFactors?: number[] }[];
 }
 
 export type Rect = { x: number; y: number; width: number; height: number };

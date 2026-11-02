@@ -155,9 +155,10 @@ export const en = {
   },
   admin: {
     allStoriesTitle: "All Storiiies",
-    allImagesTitle: "Uploaded Images",
+    allImagesTitle: "Uploads",
     cardDescription: "View and manage all stories in the database",
-    imagesCardDescription: "View and manage uploaded IIIF images",
+    imagesCardDescription:
+      "Story images and annotation media uploaded to the editor",
     storiesCount: (count: number) => `${count} stories`,
     deletedStories: (count: number) => `Deleted stories (${count})`,
     byAuthor: (author: string) => `by ${author}`,
@@ -172,6 +173,16 @@ export const en = {
       updated: "Updated",
       actions: "Actions",
     },
+    storyImagesHeading: "Story images",
+    mediaHeading: "Annotation media",
+    noMedia: "No annotation media uploaded yet.",
+    annotationRef: (title: string, n: number) => `${title}, annotation ${n}`,
+    mediaTableHeaders: {
+      file: "File",
+      usedBy: "Used by",
+      uploaded: "Uploaded",
+    },
+    deleteMediaConfirm: "Delete this file? It is not used by any annotation.",
     imageTableHeaders: {
       filename: "Filename",
       usedBy: "Used By",

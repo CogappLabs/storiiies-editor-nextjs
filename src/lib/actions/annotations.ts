@@ -234,3 +234,13 @@ export const updateAnnotationAudio = async (
     return actionFailure("update annotation audio", error);
   }
 };
+
+/** Deletes an uploaded media file, but only if no annotation references it. */
+export const deleteUnusedMedia = async (url: string): Promise<ActionResult> => {
+  try {
+    await deleteOrphanedMedia([url]);
+    revalidatePath("/admin/images");
+  } catch (error) {
+    return actionFailure("delete media", error);
+  }
+};

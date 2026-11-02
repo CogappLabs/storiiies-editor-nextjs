@@ -116,13 +116,23 @@ export const extractManifestOptions = (
 };
 
 /**
- * A preview-sized image. Level 0 servers only promise the full size, which is
- * "max" in Image API 3 and "full" in Image API 2; level 1 adds width scaling.
+ * A preview-sized image. Level 1 servers scale to any width. Level 0 servers
+ * only serve the sizes their tiles were cut at, so use the coarsest tile
+ * level's whole image, or the full size ("max" in Image API 3, "full" in 2).
  */
 export const thumbnailUrl = (infoUrl: string, info: IIIFInfo) => {
   const base = infoUrl.replace(/\/info\.json$/, "");
   if (!JSON.stringify(info.profile ?? "").includes("level0")) {
     return `${base}/full/400,/0/default.jpg`;
+  }
+  const scale = Math.max(
+    1,
+    ...(info.tiles ?? []).flatMap((tile) => tile.scaleFactors ?? []),
+  );
+  if (scale > 1) {
+    const width = Math.ceil(info.width / scale);
+    const height = Math.ceil(info.height / scale);
+    return `${base}/full/${width},${height}/0/default.jpg`;
   }
   const isV2 = JSON.stringify(info["@context"] ?? "").includes("image/2");
   return `${base}/full/${isV2 ? "full" : "max"}/0/default.jpg`;

@@ -1,6 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
-import { del, list, put } from "@vercel/blob";
+import { del, type ListBlobResultBlob, list, put } from "@vercel/blob";
 import { prisma } from "@/lib/prisma";
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -67,15 +67,22 @@ export const uploadDirectory = async (
   return uploadedUrls;
 };
 
-export const deleteDirectory = async (blobPrefix: string): Promise<void> => {
+export const listAll = async (prefix: string) => {
+  const blobs: ListBlobResultBlob[] = [];
   let cursor: string | undefined;
   do {
-    const result = await list({ prefix: blobPrefix, cursor });
-    if (result.blobs.length > 0) {
-      await del(result.blobs.map((blob) => blob.url));
-    }
-    cursor = result.cursor;
+    const page = await list({ prefix, cursor });
+    blobs.push(...page.blobs);
+    cursor = page.cursor;
   } while (cursor);
+  return blobs;
+};
+
+export const deleteDirectory = async (blobPrefix: string): Promise<void> => {
+  const blobs = await listAll(blobPrefix);
+  if (blobs.length > 0) {
+    await del(blobs.map((blob) => blob.url));
+  }
 };
 
 export const getBlobBaseUrl = (): string => {
