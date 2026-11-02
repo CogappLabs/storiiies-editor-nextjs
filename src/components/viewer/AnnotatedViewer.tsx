@@ -13,6 +13,19 @@ import type { Annotation } from "@/generated/prisma/client";
 import { VIEWER_CONFIG } from "@/lib/config";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { AnnotationBounds, Rect } from "@/lib/types";
+import {
+  ARROW_STEPS,
+  applyResize,
+  clampRect,
+  drawRect,
+  getHandlePositions,
+  getScale,
+  handleCursors,
+  type ResizeHandle,
+  readRect,
+  windowToImage,
+} from "./geometry";
+import ViewerControls from "./ViewerControls";
 
 // Store viewer instances outside React to prevent HMR serialization issues
 const viewerInstances = new WeakMap<
@@ -39,8 +52,6 @@ export interface AnnotatedViewerHandle {
   getViewportBounds: () => AnnotationBounds | null;
 }
 
-type ResizeHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
-
 interface DragInfo {
   type: "move" | "resize";
   handle?: ResizeHandle;
@@ -49,189 +60,6 @@ interface DragInfo {
   origRect: Rect;
   annotationId: string;
 }
-
-const windowToImage = (
-  viewer: OpenSeadragon.Viewer,
-  clientX: number,
-  clientY: number,
-): { x: number; y: number } => {
-  const webPoint = new OpenSeadragon.Point(clientX, clientY);
-  const viewportPoint = viewer.viewport.windowToViewportCoordinates(webPoint);
-  const imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
-  return { x: imagePoint.x, y: imagePoint.y };
-};
-
-const getHandlePositions = (
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-): Record<ResizeHandle, { cx: number; cy: number }> => ({
-  nw: { cx: x, cy: y },
-  n: { cx: x + w / 2, cy: y },
-  ne: { cx: x + w, cy: y },
-  e: { cx: x + w, cy: y + h / 2 },
-  se: { cx: x + w, cy: y + h },
-  s: { cx: x + w / 2, cy: y + h },
-  sw: { cx: x, cy: y + h },
-  w: { cx: x, cy: y + h / 2 },
-});
-
-const applyResize = (
-  handle: ResizeHandle,
-  origRect: Rect,
-  dx: number,
-  dy: number,
-): Rect => {
-  let { x, y, width, height } = origRect;
-  const minSize = 10;
-
-  switch (handle) {
-    case "nw":
-      x += dx;
-      y += dy;
-      width -= dx;
-      height -= dy;
-      break;
-    case "n":
-      y += dy;
-      height -= dy;
-      break;
-    case "ne":
-      y += dy;
-      width += dx;
-      height -= dy;
-      break;
-    case "e":
-      width += dx;
-      break;
-    case "se":
-      width += dx;
-      height += dy;
-      break;
-    case "s":
-      height += dy;
-      break;
-    case "sw":
-      x += dx;
-      width -= dx;
-      height += dy;
-      break;
-    case "w":
-      x += dx;
-      width -= dx;
-      break;
-  }
-
-  if (width < minSize) {
-    if (handle.includes("w")) x = origRect.x + origRect.width - minSize;
-    width = minSize;
-  }
-  if (height < minSize) {
-    if (handle.includes("n")) y = origRect.y + origRect.height - minSize;
-    height = minSize;
-  }
-
-  return {
-    x: Math.round(x),
-    y: Math.round(y),
-    width: Math.round(width),
-    height: Math.round(height),
-  };
-};
-
-const clampRect = (
-  r: Rect,
-  type: "move" | "resize",
-  imageWidth: number,
-  imageHeight: number,
-): Rect => {
-  const x = Math.max(0, r.x);
-  const y = Math.max(0, r.y);
-  return type === "move"
-    ? {
-        x: Math.round(Math.min(x, imageWidth - r.width)),
-        y: Math.round(Math.min(y, imageHeight - r.height)),
-        width: Math.round(r.width),
-        height: Math.round(r.height),
-      }
-    : {
-        x: Math.round(x),
-        y: Math.round(y),
-        width: Math.round(Math.min(r.width, imageWidth - x)),
-        height: Math.round(Math.min(r.height, imageHeight - y)),
-      };
-};
-
-// Moves an annotation's rect, crosshairs and handles without a React render,
-// so drags and key nudges stay smooth until the save round-trips.
-const drawRect = (group: Element, r: Rect) => {
-  const rect = group.querySelector(".annotation-rect");
-  rect?.setAttribute("x", String(r.x));
-  rect?.setAttribute("y", String(r.y));
-  rect?.setAttribute("width", String(r.width));
-  rect?.setAttribute("height", String(r.height));
-
-  const [hLine, vLine] = group.querySelectorAll(".crosshair-group line");
-  if (hLine && vLine) {
-    const cx = r.x + r.width / 2;
-    const cy = r.y + r.height / 2;
-    const size =
-      Math.min(r.width, r.height) * VIEWER_CONFIG.crosshair.sizeRatio;
-    hLine.setAttribute("x1", String(cx - size));
-    hLine.setAttribute("y1", String(cy));
-    hLine.setAttribute("x2", String(cx + size));
-    hLine.setAttribute("y2", String(cy));
-    vLine.setAttribute("x1", String(cx));
-    vLine.setAttribute("y1", String(cy - size));
-    vLine.setAttribute("x2", String(cx));
-    vLine.setAttribute("y2", String(cy + size));
-  }
-
-  const handles = getHandlePositions(r.x, r.y, r.width, r.height);
-  for (const [handle, pos] of Object.entries(handles)) {
-    const circle = group.querySelector(`[data-handle="${handle}"]`);
-    circle?.setAttribute("cx", String(pos.cx));
-    circle?.setAttribute("cy", String(pos.cy));
-  }
-};
-
-const readRect = (group: Element): Rect => {
-  const rect = group.querySelector(".annotation-rect");
-  const num = (name: string) =>
-    Math.round(Number.parseFloat(rect?.getAttribute(name) || "0"));
-  return {
-    x: num("x"),
-    y: num("y"),
-    width: num("width"),
-    height: num("height"),
-  };
-};
-
-const ARROW_STEPS: Record<string, [number, number]> = {
-  ArrowLeft: [-1, 0],
-  ArrowRight: [1, 0],
-  ArrowUp: [0, -1],
-  ArrowDown: [0, 1],
-};
-
-const handleCursors: Record<ResizeHandle, string> = {
-  nw: "nwse-resize",
-  n: "ns-resize",
-  ne: "nesw-resize",
-  e: "ew-resize",
-  se: "nwse-resize",
-  s: "ns-resize",
-  sw: "nesw-resize",
-  w: "ew-resize",
-};
-
-const getScale = (viewer: OpenSeadragon.Viewer): number => {
-  const zoom = viewer.viewport.getZoom(true);
-  const containerWidth = viewer.viewport.getContainerSize().x;
-  const contentFactor = viewer.world.getContentFactor();
-  return (zoom * containerWidth) / contentFactor;
-};
 
 const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
   (
@@ -736,27 +564,10 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
       viewer.viewport.fitBounds(viewportRect, false);
     }, [selectedAnnotationId, getViewer]);
 
-    const handleZoomIn = () => {
+    const zoomBy = (factor: number) => {
       const viewer = getViewer();
-      if (viewer) {
-        viewer.viewport.zoomBy(VIEWER_CONFIG.zoomInFactor);
-        viewer.viewport.applyConstraints();
-      }
-    };
-
-    const handleZoomOut = () => {
-      const viewer = getViewer();
-      if (viewer) {
-        viewer.viewport.zoomBy(VIEWER_CONFIG.zoomOutFactor);
-        viewer.viewport.applyConstraints();
-      }
-    };
-
-    const handleHome = () => {
-      const viewer = getViewer();
-      if (viewer) {
-        viewer.viewport.goHome();
-      }
+      viewer?.viewport.zoomBy(factor);
+      viewer?.viewport.applyConstraints();
     };
 
     return (
@@ -764,101 +575,13 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
         <div ref={containerRef} className="h-full w-full" />
 
         {isReady && (
-          <div className="absolute top-4 left-4 flex gap-1 z-10">
-            <button
-              type="button"
-              onClick={handleZoomIn}
-              className="bg-white hover:bg-cogapp-cream p-2 rounded shadow border"
-              aria-label={strings.viewerControls.zoomIn}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={handleZoomOut}
-              className="bg-white hover:bg-cogapp-cream p-2 rounded shadow border"
-              aria-label={strings.viewerControls.zoomOut}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20 12H4"
-                />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={handleHome}
-              className="bg-white hover:bg-cogapp-cream p-2 rounded shadow border"
-              aria-label={strings.viewerControls.resetView}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={onToggleCrosshairs}
-              className={`p-2 rounded shadow border ${
-                showCrosshairs
-                  ? "bg-cogapp-charcoal text-cogapp-cream border-cogapp-charcoal hover:bg-cogapp-charcoal/90"
-                  : "bg-white hover:bg-cogapp-cream"
-              }`}
-              aria-label={
-                showCrosshairs
-                  ? strings.viewerControls.hideCrosshairs
-                  : strings.viewerControls.showCrosshairs
-              }
-              aria-pressed={showCrosshairs}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v4m0 8v4m-8-8h4m8 0h4"
-                />
-              </svg>
-            </button>
-          </div>
+          <ViewerControls
+            onZoomIn={() => zoomBy(VIEWER_CONFIG.zoomInFactor)}
+            onZoomOut={() => zoomBy(VIEWER_CONFIG.zoomOutFactor)}
+            onHome={() => getViewer()?.viewport.goHome()}
+            showCrosshairs={showCrosshairs}
+            onToggleCrosshairs={onToggleCrosshairs}
+          />
         )}
       </div>
     );

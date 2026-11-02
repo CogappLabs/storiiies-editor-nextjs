@@ -6,12 +6,12 @@ import { updateAnnotation } from "@/lib/actions/annotations";
 import { useManifestUrl } from "@/lib/hooks/useManifestUrl";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { AnnotationBounds, Rect, StoryWithAnnotations } from "@/lib/types";
-import type { AnnotatedViewerHandle } from "./AnnotatedViewer";
 import AnnotationList from "./AnnotationList";
 import NewAnnotationForm from "./NewAnnotationForm";
 import SharePopup from "./SharePopup";
 import StorySettingsModal from "./StorySettingsModal";
 import { Button, Header } from "./ui";
+import type { AnnotatedViewerHandle } from "./viewer/AnnotatedViewer";
 
 const ViewerLoading = () => {
   const strings = useStrings();
@@ -23,7 +23,7 @@ const ViewerLoading = () => {
 };
 
 // OpenSeadragon needs window, so the viewer is client-only.
-const AnnotatedViewer = dynamic(() => import("./AnnotatedViewer"), {
+const AnnotatedViewer = dynamic(() => import("./viewer/AnnotatedViewer"), {
   ssr: false,
   loading: ViewerLoading,
 });
