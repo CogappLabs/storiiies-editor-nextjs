@@ -389,7 +389,6 @@ const CreateStoryForm = () => {
                       alt={strings.createStoryForm.thumbnailAlt(option.label)}
                       width={56}
                       height={56}
-                      unoptimized
                       className="w-full h-full object-cover rounded border"
                     />
                   </div>
