@@ -1,26 +1,22 @@
+import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-interface BackLink {
-  href: string;
-  label: string;
-}
-
-interface HeaderProps {
+interface HeaderProps<T extends string> {
   title: string;
   subtitle?: string;
-  backLink?: BackLink;
+  backLink?: { href: Route<T>; label: string };
   actions?: ReactNode;
   fullWidth?: boolean;
 }
 
-const Header = ({
+const Header = <T extends string>({
   title,
   subtitle,
   backLink,
   actions,
   fullWidth = false,
-}: HeaderProps) => (
+}: HeaderProps<T>) => (
   <header className="bg-cogapp-charcoal">
     <div
       className={`${fullWidth ? "" : "max-w-6xl mx-auto"} px-4 py-6 flex items-center justify-between`}

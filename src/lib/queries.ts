@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 // Reads for server components. Kept out of the "use server" action modules,
@@ -21,19 +22,21 @@ export const getAllStories = () =>
     include: withImageAndCount,
   });
 
+export const storyWithMedia = {
+  imageSource: true,
+  annotations: {
+    orderBy: { ordinal: "asc" },
+    include: {
+      images: { orderBy: { ordinal: "asc" } },
+      audio: { orderBy: { ordinal: "asc" } },
+    },
+  },
+} satisfies Prisma.StoryInclude;
+
 export const getStory = (id: string) =>
   prisma.story.findFirst({
     where: { id, deletedAt: null },
-    include: {
-      imageSource: true,
-      annotations: {
-        orderBy: { ordinal: "asc" },
-        include: {
-          images: { orderBy: { ordinal: "asc" } },
-          audio: { orderBy: { ordinal: "asc" } },
-        },
-      },
-    },
+    include: storyWithMedia,
   });
 
 export const isStoryDeleted = async (id: string) => {

@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { type ButtonHTMLAttributes, forwardRef, type ReactNode } from "react";
 
@@ -72,11 +73,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = "Button";
 
-export const ButtonLink = ({
+export const ButtonLink = <T extends string>({
   href,
   children,
   ...style
-}: StyleProps & { href: string; children: ReactNode }) => (
+}: StyleProps & { href: Route<T>; children: ReactNode }) => (
   <Link href={href} className={classes({ variant: "secondary", ...style })}>
     {children}
   </Link>

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { storyWithMedia } from "@/lib/queries";
 
 const escapeHtml = (s: string) =>
   s
@@ -10,25 +11,17 @@ const escapeHtml = (s: string) =>
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: RouteContext<"/api/manifest/[id]">,
 ) {
   const { id } = await params;
   const host = request.headers.get("host") || "localhost:3000";
   const protocol = request.headers.get("x-forwarded-proto") || "http";
   const baseUrl = `${protocol}://${host}`;
 
+  // findUnique rather than getStory: a deleted story answers 410, not 404.
   const story = await prisma.story.findUnique({
     where: { id },
-    include: {
-      imageSource: true,
-      annotations: {
-        orderBy: { ordinal: "asc" },
-        include: {
-          images: { orderBy: { ordinal: "asc" } },
-          audio: { orderBy: { ordinal: "asc" } },
-        },
-      },
-    },
+    include: storyWithMedia,
   });
 
   if (!story) {

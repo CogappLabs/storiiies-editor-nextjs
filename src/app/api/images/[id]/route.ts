@@ -2,9 +2,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import { deleteDirectory } from "@/lib/blob";
 import { prisma } from "@/lib/prisma";
 
-type RouteParams = { params: Promise<{ id: string }> };
-
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  _request: NextRequest,
+  { params }: RouteContext<"/api/images/[id]">,
+) {
   try {
     const { id } = await params;
     const imageSource = await prisma.imageSource.findUnique({

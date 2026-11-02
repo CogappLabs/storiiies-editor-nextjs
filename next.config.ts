@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   // Images come from arbitrary IIIF hosts and are shown at thumbnail size, so
   // the optimiser is off; enabled with open remotePatterns it is a public proxy.
   images: { unoptimized: true },
+  typedRoutes: true,
 };
 
 export default nextConfig;

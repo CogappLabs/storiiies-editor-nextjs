@@ -9,7 +9,7 @@ A Next.js app for creating IIIF annotated stories. Users add annotations (text, 
 - **Database:** PostgreSQL via Prisma 7 (hosted on Neon)
 - **Styling:** Tailwind CSS 4
 - **Linting/Formatting:** Biome (not ESLint/Prettier)
-- **Pre-commit:** Lefthook (runs `biome check` + `tsc --noEmit`)
+- **Pre-commit:** Lefthook (runs `biome check` + `npm run typecheck`)
 - **Package manager:** npm
 - **Blob storage:** Vercel Blob (for uploaded image tiles)
 
@@ -22,8 +22,8 @@ npx biome check --write .
 # Lint (check only, CI mode)
 npx biome check .
 
-# Type check
-npx tsc --noEmit
+# Type check (generates Next route types first)
+npm run typecheck
 
 # Database: push schema changes (we use Neon, so db push not migrate)
 npx prisma db push
@@ -88,7 +88,7 @@ src/
   generated/prisma/       # Generated Prisma client (gitignored)
 prisma/
   schema.prisma           # Database schema
-  prisma.config.ts        # Prisma config (loads .env.local)
+prisma.config.ts          # Prisma config (loads .env.local)
 ```
 
 ## Key Patterns

@@ -7,7 +7,7 @@ import { getStory, isStoryDeleted } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
-const EditorPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+const EditorPage = async ({ params }: PageProps<"/editor/[id]">) => {
   const { id } = await params;
   const story = await getStory(id);
   const strings = getStrings();

@@ -9,7 +9,7 @@
     "lint": "biome check .",
     "postinstall": "prisma generate",
     "test:e2e": "playwright test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@cogapp/storiiies-viewer": "^3.1.2",
