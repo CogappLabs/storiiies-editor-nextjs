@@ -124,7 +124,7 @@ const StoryTable = ({
   );
 };
 
-export default async function AdminStoriiies() {
+const AdminStoriiies = async () => {
   const stories = await getAllStories();
   const strings = getStrings();
   const active = stories.filter((s) => s.deletedAt === null);
@@ -163,4 +163,6 @@ export default async function AdminStoriiies() {
       </main>
     </div>
   );
-}
+};
+
+export default AdminStoriiies;

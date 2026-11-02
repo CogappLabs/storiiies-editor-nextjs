@@ -6,7 +6,7 @@ import { formatDate, getStrings } from "@/lib/i18n/strings";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+const Home = async () => {
   const stories = await getStories();
   const strings = getStrings();
 
@@ -75,4 +75,6 @@ export default async function Home() {
       </main>
     </div>
   );
-}
+};
+
+export default Home;
