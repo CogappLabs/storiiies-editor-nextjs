@@ -4,7 +4,7 @@ A local-first editor for creating IIIF annotation stories. Create annotated narr
 
 ## Features
 
- - Create stories from IIIF image or manifest URLs
+- Create stories from IIIF image or manifest URLs
 - Add annotations at the current viewport position
 - Resize and reposition annotations with Annotorious
 - Drag-and-drop reordering of annotations
@@ -38,17 +38,20 @@ A local-first editor for creating IIIF annotation stories. Create annotated narr
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone <repository-url>
    cd storiiies-editor-local
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Set up environment variables:
+
    ```bash
    cp .env.example .env.local
    ```
@@ -58,12 +61,14 @@ A local-first editor for creating IIIF annotation stories. Create annotated narr
    - Pull env vars from Vercel: `vercel env pull .env.local`
 
 4. Initialize the database:
+
    ```bash
    npx prisma generate
    npx prisma migrate dev
    ```
 
 5. Start the development server:
+
    ```bash
    npm run dev
    ```

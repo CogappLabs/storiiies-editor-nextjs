@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import sharp from "sharp";
 import { getBlobBaseUrl, uploadDirectory } from "@/lib/blob";
 import { cleanupTempDir, generateIIIFTiles } from "@/lib/iiif";
 import { prisma } from "@/lib/prisma";
@@ -24,6 +25,23 @@ export async function POST(request: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    // Validate file is actually an image by reading its metadata with sharp
+    try {
+      const metadata = await sharp(buffer).metadata();
+      if (!metadata.format) {
+        return NextResponse.json(
+          { error: "File is not a valid image" },
+          { status: 400 },
+        );
+      }
+    } catch {
+      return NextResponse.json(
+        { error: "File is not a valid image" },
+        { status: 400 },
+      );
+    }
+
     const imageId = crypto.randomUUID();
     const blobBaseUrl = getBlobBaseUrl();
 

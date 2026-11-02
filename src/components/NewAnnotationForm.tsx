@@ -2,13 +2,9 @@
 
 import { useId, useState, useTransition } from "react";
 import { createAnnotation } from "@/lib/actions";
-import {
-  type AudioField,
-  createAudioField,
-  createImageField,
-  type ImageField,
-} from "@/lib/form-utils";
+import type { MediaField } from "@/lib/form-utils";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
+import MediaFieldList from "./MediaFieldList";
 import { Button } from "./ui";
 
 interface PendingData {
@@ -31,14 +27,16 @@ const NewAnnotationForm = ({
 }: NewAnnotationFormProps) => {
   const [isPending, startTransition] = useTransition();
   const [text, setText] = useState("");
-  const [imageFields, setImageFields] = useState<ImageField[]>([]);
-  const [audioFields, setAudioFields] = useState<AudioField[]>([]);
+  const [imageFields, setImageFields] = useState<MediaField[]>([]);
+  const [audioFields, setAudioFields] = useState<MediaField[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const strings = useStrings();
   const textAreaId = useId();
 
   const handleSave = () => {
+    setError(null);
     startTransition(async () => {
-      await createAnnotation(storyId, {
+      const res = await createAnnotation(storyId, {
         text,
         x: pendingData.rect.x,
         y: pendingData.rect.y,
@@ -55,6 +53,10 @@ const NewAnnotationForm = ({
           .map((field) => field.value.trim())
           .filter((url) => url !== ""),
       });
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
       onSave();
     });
   };
@@ -74,94 +76,28 @@ const NewAnnotationForm = ({
       />
 
       <div className="mt-3">
-        <p className="block text-sm font-medium mb-2">
-          {strings.newAnnotationForm.imagesLabel}
-        </p>
-        {imageFields.map((field) => (
-          <div key={field.id} className="flex gap-2 mb-2">
-            <input
-              type="url"
-              value={field.value}
-              onChange={(e) => {
-                setImageFields((current) =>
-                  current.map((item) =>
-                    item.id === field.id
-                      ? { ...item, value: e.target.value }
-                      : item,
-                  ),
-                );
-              }}
-              className="flex-1 px-2 py-1 border rounded text-sm"
-              placeholder={strings.newAnnotationForm.imagePlaceholder}
-            />
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => {
-                setImageFields((current) =>
-                  current.filter((item) => item.id !== field.id),
-                );
-              }}
-            >
-              {strings.newAnnotationForm.removeImage}
-            </Button>
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() =>
-            setImageFields((current) => [...current, createImageField()])
-          }
-          className="text-sm text-cogapp-charcoal hover:text-cogapp-charcoal/70"
-        >
-          + {strings.newAnnotationForm.addImage}
-        </button>
+        <MediaFieldList
+          kind="image"
+          label={strings.newAnnotationForm.imagesLabel}
+          fields={imageFields}
+          setFields={setImageFields}
+        />
       </div>
 
       <div className="mt-3">
-        <p className="block text-sm font-medium mb-2">
-          {strings.newAnnotationForm.audioLabel}
-        </p>
-        {audioFields.map((field) => (
-          <div key={field.id} className="flex gap-2 mb-2">
-            <input
-              type="url"
-              value={field.value}
-              onChange={(e) => {
-                setAudioFields((current) =>
-                  current.map((item) =>
-                    item.id === field.id
-                      ? { ...item, value: e.target.value }
-                      : item,
-                  ),
-                );
-              }}
-              className="flex-1 px-2 py-1 border rounded text-sm"
-              placeholder={strings.newAnnotationForm.audioPlaceholder}
-            />
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => {
-                setAudioFields((current) =>
-                  current.filter((item) => item.id !== field.id),
-                );
-              }}
-            >
-              {strings.newAnnotationForm.removeAudio}
-            </Button>
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() =>
-            setAudioFields((current) => [...current, createAudioField()])
-          }
-          className="text-sm text-cogapp-charcoal hover:text-cogapp-charcoal/70"
-        >
-          + {strings.newAnnotationForm.addAudio}
-        </button>
+        <MediaFieldList
+          kind="audio"
+          label={strings.newAnnotationForm.audioLabel}
+          fields={audioFields}
+          setFields={setAudioFields}
+        />
       </div>
+
+      {error && (
+        <p role="alert" className="mt-3 text-sm text-red-600">
+          {error}
+        </p>
+      )}
 
       <div className="flex gap-2 mt-3">
         <Button size="sm" onClick={handleSave} disabled={isPending}>

@@ -6,8 +6,6 @@ export const VIEWER_CONFIG = {
     sizeRatio: 0.15,
     strokeColor: "#717171",
     strokeWidth: 2,
-    initialUpdateDelayMs: 100,
-    observedAttributes: ["x", "y", "width", "height"] as const,
   },
 } as const;
 

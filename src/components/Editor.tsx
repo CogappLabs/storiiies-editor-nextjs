@@ -50,13 +50,18 @@ const Editor = ({ story }: Props) => {
   const [showManifestLink, setShowManifestLink] = useState(false);
   const [manifestUrl, setManifestUrl] = useState("");
   const [showCrosshairs, setShowCrosshairs] = useState(false);
+  // "Add" captures the current view, so it waits for the image to open.
+  const [viewerReady, setViewerReady] = useState(false);
   const [pendingData, setPendingData] = useState<{
     rect: { x: number; y: number; width: number; height: number };
     viewport: { x: number; y: number; width: number; height: number };
   } | null>(null);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
-    "idle",
-  );
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  // Drag saves run one after another so the last drag is the one stored.
+  const saveChain = useRef<Promise<unknown>>(Promise.resolve());
+  const saveSeq = useRef(0);
   const strings = useStrings();
 
   useEffect(() => {
@@ -72,14 +77,32 @@ const Editor = ({ story }: Props) => {
     }
   };
 
-  const handleAnnotationUpdate = async (
+  useEffect(() => {
+    if (saveStatus !== "saved") return;
+    const timer = setTimeout(() => setSaveStatus("idle"), 1500);
+    return () => clearTimeout(timer);
+  }, [saveStatus]);
+
+  const handleAnnotationUpdate = (
     id: string,
     coords: { x: number; y: number; width: number; height: number },
   ) => {
+    const seq = ++saveSeq.current;
     setSaveStatus("saving");
-    await updateAnnotation(id, story.id, coords);
-    setSaveStatus("saved");
-    setTimeout(() => setSaveStatus("idle"), 1500);
+    const save = saveChain.current.then(() =>
+      updateAnnotation(id, story.id, coords),
+    );
+    saveChain.current = save.catch(() => undefined);
+    save.then(
+      (result) => {
+        if (seq === saveSeq.current) {
+          setSaveStatus(result?.error ? "error" : "saved");
+        }
+      },
+      () => {
+        if (seq === saveSeq.current) setSaveStatus("error");
+      },
+    );
   };
 
   return (
@@ -132,6 +155,7 @@ const Editor = ({ story }: Props) => {
             imageHeight={story.imageSource.height}
             annotations={story.annotations}
             onAnnotationUpdate={handleAnnotationUpdate}
+            onReadyChange={setViewerReady}
             onAnnotationSelect={setSelectedAnnotationId}
             selectedAnnotationId={selectedAnnotationId}
             showCrosshairs={showCrosshairs}
@@ -149,13 +173,16 @@ const Editor = ({ story }: Props) => {
               <h2 className="font-medium text-sm md:text-base">
                 {strings.editor.annotationsHeading}
               </h2>
-              {saveStatus !== "idle" && (
-                <span className="text-xs text-gray-500">
-                  {saveStatus === "saving" ? "Saving..." : "Saved"}
-                </span>
-              )}
+              <output
+                className={`text-xs ${saveStatus === "error" ? "text-red-600" : "text-gray-500"}`}
+              >
+                {saveStatus !== "idle" &&
+                  strings.editor[
+                    saveStatus === "error" ? "saveFailed" : saveStatus
+                  ]}
+              </output>
             </div>
-            <Button onClick={handleAddAnnotation}>
+            <Button onClick={handleAddAnnotation} disabled={!viewerReady}>
               {strings.editor.addButton}
             </Button>
           </div>

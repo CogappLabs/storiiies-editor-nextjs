@@ -38,7 +38,7 @@ export const buttonSizeStyles: Record<ButtonSize, string> = {
 };
 
 export const buttonBaseStyles =
-  "inline-flex items-center font-medium leading-7 border focus:outline-none focus:ring-2 focus:ring-cogapp-lavender focus:ring-offset-2 transition-colors";
+  "inline-flex items-center font-medium leading-7 border transition-colors";
 
 export const getButtonStyles = (
   variant: ButtonVariant = "primary",

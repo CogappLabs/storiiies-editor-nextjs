@@ -16,28 +16,25 @@ const StoriiiesPreview = () => {
   const { errorLoading, errorGeneric } = strings.preview;
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setManifestUrl(`${window.location.origin}/api/manifest/${id}`);
-    }
+    setManifestUrl(`${window.location.origin}/api/manifest/${id}`);
   }, [id]);
 
   useEffect(() => {
     if (!manifestUrl) return;
 
-    // Dynamically import StoriiiesViewer
+    // Effect-local rather than React state/ref, to avoid Turbopack HMR
+    // serialization. `disposed` covers cleanup running before the import
+    // resolves (strict mode double mount, fast navigation).
+    let disposed = false;
+    let instance: { viewer?: { destroy: () => void } } | null = null;
+
     import("@cogapp/storiiies-viewer")
       .then((module) => {
+        if (disposed) return;
         const StoriiiesViewer = module.default;
 
         try {
-          // Clear any previous viewer
-          const container = document.getElementById("storiiies-viewer");
-          if (container) {
-            container.innerHTML = "";
-          }
-
-          // Don't store in React state/ref to avoid Turbopack HMR serialization
-          new StoriiiesViewer({
+          instance = new StoriiiesViewer({
             container: "#storiiies-viewer",
             manifestUrl: manifestUrl,
           });
@@ -56,6 +53,8 @@ const StoriiiesPreview = () => {
       });
 
     return () => {
+      disposed = true;
+      instance?.viewer?.destroy();
       const container = document.getElementById("storiiies-viewer");
       if (container) container.innerHTML = "";
     };

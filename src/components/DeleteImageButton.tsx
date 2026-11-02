@@ -29,7 +29,7 @@ const DeleteImageButton = ({ imageId }: DeleteImageButtonProps) => {
     <button
       type="button"
       onClick={handleDelete}
-      className="text-sm text-red-600 hover:underline focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 rounded"
+      className="text-sm text-red-600 hover:underline rounded"
     >
       {strings.admin.actionLabels.delete}
     </button>

@@ -50,7 +50,7 @@ class ErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.handleReset}
-              className="px-4 py-2 bg-cogapp-charcoal text-cogapp-cream rounded hover:bg-cogapp-charcoal/90 focus:outline-none focus:ring-2 focus:ring-cogapp-lavender focus:ring-offset-2"
+              className="px-4 py-2 bg-cogapp-charcoal text-cogapp-cream rounded hover:bg-cogapp-charcoal/90"
             >
               {strings.errorBoundary.tryAgain}
             </button>

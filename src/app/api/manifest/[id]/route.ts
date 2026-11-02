@@ -1,6 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+const escapeHtml = (s: string) =>
+  s
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -82,7 +89,11 @@ export async function GET(
                     {
                       id: imageServiceUrl,
                       type: "ImageService3",
-                      profile: "level1",
+                      // Uploads are static sharp tiles, which only support level0.
+                      profile:
+                        story.imageSource.sourceType === "upload"
+                          ? "level0"
+                          : "level1",
                     },
                   ],
                 },
@@ -98,20 +109,28 @@ export async function GET(
                   id: `${baseUrl}/api/manifest/${story.id}/canvas/1/annotations`,
                   type: "AnnotationPage",
                   items: story.annotations.map((annotation) => {
-                    // Build the annotation body
-                    const textBody = {
-                      type: "TextualBody",
-                      value: annotation.text,
-                      language: "en",
-                      format: "text/plain",
-                    };
-
-                    // If there are images or audio, body becomes an array
-                    const imageBodies = annotation.images.map((img) => ({
-                      type: "Image",
-                      id: img.imageUrl,
-                      format: "image/jpeg",
-                    }));
+                    // StoriiiesViewer renders only TextualBody and Sound
+                    // bodies, so images go inline as <img> in an HTML body.
+                    const textBody =
+                      annotation.images.length > 0
+                        ? {
+                            type: "TextualBody",
+                            value: [
+                              `<p>${escapeHtml(annotation.text).replace(/\r?\n/g, "<br>")}</p>`,
+                              ...annotation.images.map(
+                                (img) =>
+                                  `<p><img src="${escapeHtml(img.imageUrl)}" alt=""></p>`,
+                              ),
+                            ].join(""),
+                            language: "en",
+                            format: "text/html",
+                          }
+                        : {
+                            type: "TextualBody",
+                            value: annotation.text,
+                            language: "en",
+                            format: "text/plain",
+                          };
 
                     const audioBodies = annotation.audio.map((aud) => ({
                       type: "Sound",
@@ -120,8 +139,8 @@ export async function GET(
                     }));
 
                     const body =
-                      imageBodies.length > 0 || audioBodies.length > 0
-                        ? [textBody, ...imageBodies, ...audioBodies]
+                      audioBodies.length > 0
+                        ? [textBody, ...audioBodies]
                         : textBody;
 
                     return {

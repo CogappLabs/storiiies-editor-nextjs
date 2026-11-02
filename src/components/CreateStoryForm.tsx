@@ -358,7 +358,8 @@ const CreateStoryForm = () => {
       formData.set("manifestUrl", manifestUrl);
     }
 
-    await createStory(formData);
+    const res = await createStory(formData);
+    if (res?.error) setError(res.error);
   };
 
   return (
@@ -413,7 +414,7 @@ const CreateStoryForm = () => {
                 resetImageState();
               }}
               placeholder={strings.createStoryForm.infoPlaceholder}
-              className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cogapp-lavender"
+              className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md"
               required={sourceMode === "url"}
             />
             <Button
@@ -559,7 +560,7 @@ const CreateStoryForm = () => {
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cogapp-lavender"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
               placeholder={strings.createStoryForm.titlePlaceholder}
               required
             />
@@ -574,7 +575,7 @@ const CreateStoryForm = () => {
               id="author"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cogapp-lavender"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
           </div>
 
@@ -590,7 +591,7 @@ const CreateStoryForm = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cogapp-lavender"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
           </div>
 
@@ -606,7 +607,7 @@ const CreateStoryForm = () => {
               id="attribution"
               value={attribution}
               onChange={(e) => setAttribution(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cogapp-lavender"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
           </div>
 

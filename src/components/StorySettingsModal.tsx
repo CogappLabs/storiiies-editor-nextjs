@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import type { Story } from "@/generated/prisma/client";
 import { deleteStory, updateStory } from "@/lib/actions";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
@@ -13,20 +13,28 @@ interface StorySettingsModalProps {
 
 const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const strings = useStrings();
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpdateStory = (formData: FormData) => {
-    startTransition(() => {
-      updateStory(story.id, formData);
+    setError(null);
+    startTransition(async () => {
+      const res = await updateStory(story.id, formData);
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
       onClose();
     });
   };
 
   const handleDeleteStory = () => {
     if (confirm(strings.storySettings.deleteConfirm)) {
-      startTransition(() => {
-        deleteStory(story.id);
+      setError(null);
+      startTransition(async () => {
+        const res = await deleteStory(story.id);
+        if (res?.error) setError(res.error);
       });
     }
   };
@@ -39,6 +47,11 @@ const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
       initialFocusRef={titleInputRef}
     >
       <form action={handleUpdateStory} className="space-y-4">
+        {error && (
+          <p role="alert" className="text-sm text-red-600">
+            {error}
+          </p>
+        )}
         <div>
           <label
             htmlFor="story-title"
@@ -51,7 +64,7 @@ const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
             name="title"
             defaultValue={story.title}
             ref={titleInputRef}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-cogapp-lavender"
+            className="w-full px-3 py-2 border rounded"
             required
           />
         </div>
@@ -66,7 +79,7 @@ const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
             id="story-author"
             name="author"
             defaultValue={story.author || ""}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-cogapp-lavender"
+            className="w-full px-3 py-2 border rounded"
           />
         </div>
         <div>
@@ -80,7 +93,7 @@ const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
             id="story-description"
             name="description"
             defaultValue={story.description || ""}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-cogapp-lavender"
+            className="w-full px-3 py-2 border rounded"
             rows={3}
           />
         </div>
@@ -95,7 +108,7 @@ const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
             id="story-attribution"
             name="attribution"
             defaultValue={story.attribution || ""}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-cogapp-lavender"
+            className="w-full px-3 py-2 border rounded"
           />
         </div>
         <div className="flex justify-between pt-4 border-t">

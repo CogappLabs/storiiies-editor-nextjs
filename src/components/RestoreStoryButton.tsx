@@ -11,14 +11,15 @@ const RestoreStoryButton = ({ storyId }: RestoreStoryButtonProps) => {
   const strings = useStrings();
 
   const handleRestore = async () => {
-    await restoreStory(storyId);
+    const res = await restoreStory(storyId);
+    if (res?.error) alert(res.error);
   };
 
   return (
     <button
       type="button"
       onClick={handleRestore}
-      className="text-sm text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 rounded"
+      className="text-sm text-cogapp-charcoal underline decoration-cogapp-charcoal/30 hover:decoration-cogapp-charcoal"
     >
       {strings.admin.actionLabels.restore}
     </button>

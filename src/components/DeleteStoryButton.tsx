@@ -12,7 +12,8 @@ const DeleteStoryButton = ({ storyId }: DeleteStoryButtonProps) => {
 
   const handleDelete = async () => {
     if (confirm(strings.storySettings.deleteConfirm)) {
-      await deleteStory(storyId);
+      const res = await deleteStory(storyId);
+      if (res?.error) alert(res.error);
     }
   };
 
@@ -20,7 +21,7 @@ const DeleteStoryButton = ({ storyId }: DeleteStoryButtonProps) => {
     <button
       type="button"
       onClick={handleDelete}
-      className="text-sm text-red-600 hover:underline focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 rounded"
+      className="text-sm text-danger underline decoration-danger/30 hover:decoration-danger"
     >
       {strings.admin.actionLabels.delete}
     </button>

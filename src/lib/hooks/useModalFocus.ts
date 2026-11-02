@@ -13,11 +13,15 @@ export const useModalFocus = (
   onClose: () => void,
 ) => {
   const returnFocusRef = useRef<Element | null>(null);
+  // Callers pass inline arrows; depending on onClose would re-run the effect
+  // on every parent render and steal focus back to the dialog.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        onCloseRef.current();
       }
       trapFocus(dialogRef.current, e);
     };
@@ -34,5 +38,5 @@ export const useModalFocus = (
         previous.focus();
       }
     };
-  }, [dialogRef, focusTargetRef, onClose]);
+  }, [dialogRef, focusTargetRef]);
 };

@@ -1,53 +1,81 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #282828;
-  /* Cogapp brand colors */
-  --cogapp-charcoal: #282828;
-  --cogapp-cream: #ebebe1;
-  --cogapp-gray: #717171;
-  /* Pastel accents */
-  --cogapp-pink: #ffdaea;
-  --cogapp-lavender: #e8daff;
-}
+/* Palette from cogapp-slides-template, as used in dagster-dashboard. */
+@theme {
+  --font-sans:
+    var(--font-civil), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  --font-serif: var(--font-untitled-serif), Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: #ffffff;
+  --color-foreground: #282828;
   --color-cogapp-charcoal: #282828;
   --color-cogapp-cream: #ebebe1;
-  --color-cogapp-gray: #717171;
+  /* Brand grey #717171 is 4.07:1 on cream and fails WCAG AA at small sizes;
+     this is the nearest value that clears 4.5:1 on cream and white. */
+  --color-cogapp-gray: #696969;
   --color-cogapp-pink: #ffdaea;
   --color-cogapp-lavender: #e8daff;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-cogapp-blue: #227bff;
+
+  /* The brand pastels are too pale on cream to carry status on their own. */
+  --color-success: #2f7d32;
+  --color-warning: #9a6700;
+  --color-danger: #b3261e;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  :root {
+    /* Clover inverts buttons to the accent on hover, so accent must be dark. */
+    --clover-color-primary: var(--color-cogapp-charcoal);
+    --clover-color-primary-muted: var(--color-cogapp-gray);
+    --clover-color-secondary: var(--color-cogapp-cream);
+    --clover-color-accent: var(--color-cogapp-charcoal);
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    letter-spacing: 0.0012em;
+    /* Civil's stylistic set 3, tabular figures and slashed zero. */
+    font-feature-settings: "ss03", "tnum", "zero";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-cogapp-pink);
+    color: var(--color-cogapp-charcoal);
+  }
+
+  /* The default underline sits on the descenders at body size. */
+  a {
+    text-underline-offset: 0.25em;
+    text-decoration-skip-ink: auto;
+  }
+
+  /* One focus style for every control. Lavender was about 1.3:1 on white and
+     cream, under the 3:1 WCAG asks of a focus indicator. */
+  :focus-visible {
+    outline: 3px solid var(--color-cogapp-blue);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Preflight's margin: 0 pins a modal dialog to the top left. */
+  dialog:modal {
+    margin: auto;
+  }
+
+  h1,
+  h2 {
+    font-family: var(--font-serif);
+  }
 }
 
-/* Annotorious crosshair styles */
+/* Annotation crosshair styles */
 .crosshair-group line {
   stroke-linecap: round;
   pointer-events: none;
-}
-
-/* Crosshairs while drawing (selection) */
-.a9s-selection .crosshair-group line {
-  stroke: red;
-  stroke-dasharray: 4 2;
-}
-
-/* Selected annotation crosshairs */
-.a9s-annotation.selected .crosshair-group line {
-  stroke: red;
-}
-
-/* Hide crosshairs when toggled off */
-.hide-crosshairs .crosshair-group {
-  display: none;
 }

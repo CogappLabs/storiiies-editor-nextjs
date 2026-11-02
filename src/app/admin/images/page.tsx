@@ -54,7 +54,7 @@ export default async function AdminImages() {
                 {images.map((image) => (
                   <tr key={image.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium">
-                      {image.originalName || "—"}
+                      {image.originalName || "-"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {image.width} × {image.height}

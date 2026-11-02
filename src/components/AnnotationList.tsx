@@ -7,7 +7,7 @@ import {
   type DropResult,
 } from "@hello-pangea/dnd";
 import Image from "next/image";
-import { useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import type {
   Annotation,
   AnnotationAudio,
@@ -20,13 +20,9 @@ import {
   updateAnnotationAudio,
   updateAnnotationImages,
 } from "@/lib/actions";
-import {
-  type AudioField,
-  createAudioField,
-  createImageField,
-  type ImageField,
-} from "@/lib/form-utils";
+import type { MediaField } from "@/lib/form-utils";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
+import MediaFieldList from "./MediaFieldList";
 import { Button } from "./ui";
 
 type AnnotationWithImages = Annotation & {
@@ -49,23 +45,32 @@ const AnnotationList = ({
 }: Props) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-  const [editImageFields, setEditImageFields] = useState<ImageField[]>([]);
-  const [editAudioFields, setEditAudioFields] = useState<AudioField[]>([]);
+  const [editImageFields, setEditImageFields] = useState<MediaField[]>([]);
+  const [editAudioFields, setEditAudioFields] = useState<MediaField[]>([]);
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  // Shows the dropped order at once; reverts to the server order when the
+  // transition ends, by which point revalidation has delivered it.
+  const [orderedAnnotations, setOrderedAnnotations] =
+    useOptimistic(annotations);
   const strings = useStrings();
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     if (result.source.index === result.destination.index) return;
 
-    const items = Array.from(annotations);
+    const items = Array.from(orderedAnnotations);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    const newOrder = items.map((item) => item.id);
-
-    startTransition(() => {
-      reorderAnnotations(storyId, newOrder);
+    setError(null);
+    startTransition(async () => {
+      setOrderedAnnotations(items);
+      const res = await reorderAnnotations(
+        storyId,
+        items.map((item) => item.id),
+      );
+      if (res?.error) setError(res.error);
     });
   };
 
@@ -83,16 +88,27 @@ const AnnotationList = ({
   const saveEdit = () => {
     if (!editingId) return;
 
+    const urls = (fields: { value: string }[]) =>
+      fields.map((field) => field.value.trim()).filter((url) => url !== "");
+
+    setError(null);
     startTransition(async () => {
-      await updateAnnotation(editingId, storyId, { text: editText });
-      const filteredImageUrls = editImageFields
-        .map((field) => field.value.trim())
-        .filter((url) => url !== "");
-      await updateAnnotationImages(editingId, storyId, filteredImageUrls);
-      const filteredAudioUrls = editAudioFields
-        .map((field) => field.value.trim())
-        .filter((url) => url !== "");
-      await updateAnnotationAudio(editingId, storyId, filteredAudioUrls);
+      const res =
+        (await updateAnnotation(editingId, storyId, { text: editText })) ??
+        (await updateAnnotationImages(
+          editingId,
+          storyId,
+          urls(editImageFields),
+        )) ??
+        (await updateAnnotationAudio(
+          editingId,
+          storyId,
+          urls(editAudioFields),
+        ));
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
       setEditingId(null);
       setEditText("");
       setEditImageFields([]);
@@ -109,8 +125,13 @@ const AnnotationList = ({
 
   const handleDelete = (id: string) => {
     if (confirm(strings.annotationList.deleteConfirm)) {
-      startTransition(() => {
-        deleteAnnotation(id, storyId);
+      setError(null);
+      startTransition(async () => {
+        const res = await deleteAnnotation(id, storyId);
+        if (res?.error) {
+          setError(res.error);
+          return;
+        }
         if (selectedId === id) {
           onSelect(null);
         }
@@ -118,16 +139,26 @@ const AnnotationList = ({
     }
   };
 
-  if (annotations.length === 0) {
+  const errorMessage = error && (
+    <p role="alert" className="mb-2 text-sm text-red-600">
+      {error}
+    </p>
+  );
+
+  if (orderedAnnotations.length === 0) {
     return (
-      <div className="text-gray-500 text-center py-8">
-        {strings.annotationList.noItems}
-      </div>
+      <>
+        {errorMessage}
+        <div className="text-gray-500 text-center py-8">
+          {strings.annotationList.noItems}
+        </div>
+      </>
     );
   }
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
+      {errorMessage}
       <Droppable droppableId="annotations">
         {(provided) => (
           <div
@@ -135,14 +166,13 @@ const AnnotationList = ({
             ref={provided.innerRef}
             className="space-y-2"
           >
-            {annotations.map((annotation, index) => (
+            {orderedAnnotations.map((annotation, index) => (
               <Draggable
                 key={annotation.id}
                 draggableId={annotation.id}
                 index={index}
               >
                 {(provided, snapshot) => (
-                  // biome-ignore lint/a11y/useSemanticElements: Nested action buttons prevent us from rendering this container as a <button>.
                   <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
@@ -153,16 +183,6 @@ const AnnotationList = ({
                     } ${snapshot.isDragging ? "shadow-lg" : ""} ${
                       isPending ? "opacity-50" : ""
                     }`}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => onSelect(annotation.id)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        onSelect(annotation.id);
-                      }
-                    }}
-                    aria-pressed={selectedId === annotation.id}
                   >
                     <div className="flex items-start gap-2">
                       {/* biome-ignore lint/a11y/useSemanticElements: Drag handle requires div for dnd library compatibility */}
@@ -170,7 +190,7 @@ const AnnotationList = ({
                         {...provided.dragHandleProps}
                         role="button"
                         tabIndex={0}
-                        className="mt-1 cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-cogapp-lavender rounded"
+                        className="mt-1 cursor-grab text-gray-400 hover:text-gray-600 rounded"
                         aria-label={strings.annotationList.dragHandle}
                       >
                         <svg
@@ -190,126 +210,27 @@ const AnnotationList = ({
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs text-gray-500 mb-1">
-                          {index + 1}
-                        </div>
-
                         {editingId === annotation.id ? (
                           <div className="space-y-2">
                             <textarea
+                              aria-label={strings.newAnnotationForm.textLabel}
                               value={editText}
                               onChange={(e) => setEditText(e.target.value)}
                               className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                               rows={3}
                             />
-                            <div>
-                              <p className="block text-xs text-gray-500 mb-1">
-                                {strings.annotationList.imagesLabel}
-                              </p>
-                              {editImageFields.map((field) => (
-                                <div key={field.id} className="flex gap-1 mb-1">
-                                  <input
-                                    type="url"
-                                    value={field.value}
-                                    onChange={(e) => {
-                                      setEditImageFields((current) =>
-                                        current.map((item) =>
-                                          item.id === field.id
-                                            ? { ...item, value: e.target.value }
-                                            : item,
-                                        ),
-                                      );
-                                    }}
-                                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs"
-                                    placeholder={
-                                      strings.newAnnotationForm.imagePlaceholder
-                                    }
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setEditImageFields((current) =>
-                                        current.filter(
-                                          (item) => item.id !== field.id,
-                                        ),
-                                      );
-                                    }}
-                                    className="px-1 text-red-600 hover:bg-red-50 rounded text-xs focus:outline-none focus:ring-2 focus:ring-red-500"
-                                    aria-label={
-                                      strings.annotationList.removeImage
-                                    }
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              ))}
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setEditImageFields((current) => [
-                                    ...current,
-                                    createImageField(),
-                                  ])
-                                }
-                                className="text-xs text-cogapp-charcoal hover:text-cogapp-charcoal/70 focus:outline-none focus:ring-2 focus:ring-cogapp-lavender rounded"
-                              >
-                                {strings.newAnnotationForm.addImage}
-                              </button>
-                            </div>
-                            <div>
-                              <p className="block text-xs text-gray-500 mb-1">
-                                {strings.annotationList.audioLabel}
-                              </p>
-                              {editAudioFields.map((field) => (
-                                <div key={field.id} className="flex gap-1 mb-1">
-                                  <input
-                                    type="url"
-                                    value={field.value}
-                                    onChange={(e) => {
-                                      setEditAudioFields((current) =>
-                                        current.map((item) =>
-                                          item.id === field.id
-                                            ? { ...item, value: e.target.value }
-                                            : item,
-                                        ),
-                                      );
-                                    }}
-                                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs"
-                                    placeholder={
-                                      strings.newAnnotationForm.audioPlaceholder
-                                    }
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setEditAudioFields((current) =>
-                                        current.filter(
-                                          (item) => item.id !== field.id,
-                                        ),
-                                      );
-                                    }}
-                                    className="px-1 text-red-600 hover:bg-red-50 rounded text-xs focus:outline-none focus:ring-2 focus:ring-red-500"
-                                    aria-label={
-                                      strings.annotationList.removeAudio
-                                    }
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              ))}
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setEditAudioFields((current) => [
-                                    ...current,
-                                    createAudioField(),
-                                  ])
-                                }
-                                className="text-xs text-cogapp-charcoal hover:text-cogapp-charcoal/70 focus:outline-none focus:ring-2 focus:ring-cogapp-lavender rounded"
-                              >
-                                {strings.newAnnotationForm.addAudio}
-                              </button>
-                            </div>
+                            <MediaFieldList
+                              kind="image"
+                              label={strings.annotationList.imagesLabel}
+                              fields={editImageFields}
+                              setFields={setEditImageFields}
+                            />
+                            <MediaFieldList
+                              kind="audio"
+                              label={strings.annotationList.audioLabel}
+                              fields={editAudioFields}
+                              setFields={setEditAudioFields}
+                            />
                             <div className="flex gap-2">
                               <Button
                                 type="button"
@@ -331,13 +252,23 @@ const AnnotationList = ({
                           </div>
                         ) : (
                           <>
-                            <p className="text-sm whitespace-pre-wrap">
-                              {annotation.text || (
-                                <span className="text-gray-400 italic">
-                                  {strings.annotationList.noText}
-                                </span>
-                              )}
-                            </p>
+                            <button
+                              type="button"
+                              onClick={() => onSelect(annotation.id)}
+                              aria-pressed={selectedId === annotation.id}
+                              className="block w-full text-left rounded"
+                            >
+                              <span className="block text-xs text-gray-500 mb-1">
+                                {index + 1}
+                              </span>
+                              <span className="block text-sm whitespace-pre-wrap">
+                                {annotation.text || (
+                                  <span className="text-gray-400 italic">
+                                    {strings.annotationList.noText}
+                                  </span>
+                                )}
+                              </span>
+                            </button>
                             {annotation.images.length > 0 && (
                               <div className="mt-2 flex flex-wrap gap-1">
                                 {annotation.images.map((img) => (
@@ -356,17 +287,19 @@ const AnnotationList = ({
                             {annotation.audio.length > 0 && (
                               <div className="mt-2 space-y-1">
                                 {annotation.audio.map((aud) => (
-                                  <div
+                                  // biome-ignore lint/a11y/useMediaCaption: Authors supply the audio; no caption files exist to attach.
+                                  <audio
                                     key={aud.id}
-                                    className="text-xs text-gray-500 truncate"
-                                  >
-                                    🔊 {aud.audioUrl}
-                                  </div>
+                                    controls
+                                    preload="none"
+                                    src={aud.audioUrl}
+                                    className="w-full h-8"
+                                  />
                                 ))}
                               </div>
                             )}
                             <details className="mt-2 text-xs">
-                              <summary className="cursor-pointer text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-cogapp-lavender rounded">
+                              <summary className="cursor-pointer text-gray-600 hover:text-gray-800 rounded">
                                 {strings.annotationList.dataSummary}
                               </summary>
                               <div className="mt-1 p-2 bg-gray-50 rounded text-gray-500 font-mono space-y-1 break-all overflow-hidden">
@@ -422,11 +355,8 @@ const AnnotationList = ({
                         <div className="flex gap-1">
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              startEditing(annotation);
-                            }}
-                            className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-cogapp-lavender rounded"
+                            onClick={() => startEditing(annotation)}
+                            className="p-1 text-gray-400 hover:text-gray-600 rounded"
                             aria-label={strings.annotationList.editAria}
                           >
                             <svg
@@ -447,11 +377,8 @@ const AnnotationList = ({
                           </button>
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(annotation.id);
-                            }}
-                            className="p-1 text-gray-400 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
+                            onClick={() => handleDelete(annotation.id)}
+                            className="p-1 text-gray-400 hover:text-red-600 rounded"
                             aria-label={strings.annotationList.deleteAria}
                           >
                             <svg

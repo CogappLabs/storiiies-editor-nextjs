@@ -54,7 +54,7 @@ const Modal = ({
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-cogapp-lavender rounded"
+            className="text-gray-400 hover:text-gray-600 rounded"
             aria-label={strings.common.close}
           >
             ✕

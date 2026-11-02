@@ -1,10 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import type {
   ImageSource,
   ImageSourceType,
+  Prisma,
   Story,
 } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -78,25 +79,47 @@ const validateCoordinates = (coords: {
   }
 };
 
-const NEXT_REDIRECT_MESSAGE = "NEXT_REDIRECT";
-
 const handleActionError = (scope: string, error: unknown): never => {
-  if (error instanceof Error && error.message === NEXT_REDIRECT_MESSAGE) {
-    throw error;
-  }
-
   const fallback = `Failed to ${scope}`;
   console.error(`${fallback}:`, error);
+  throw error instanceof Error ? error : new Error(fallback);
+};
 
-  if (error instanceof Error) {
-    throw error;
+export type ActionResult = { error: string } | undefined;
+
+// Next masks thrown server action errors in production, so mutations return
+// the message instead. Prisma errors are verbose and internal, so they get
+// the generic fallback.
+const actionFailure = (scope: string, error: unknown): ActionResult => {
+  unstable_rethrow(error);
+  const fallback = `Failed to ${scope}`;
+  console.error(`${fallback}:`, error);
+  const isOwnMessage =
+    error instanceof Error && !error.constructor.name.startsWith("Prisma");
+  return { error: isOwnMessage ? error.message : fallback };
+};
+
+// Serialises ordinal allocation per story: concurrent creates otherwise both
+// read the same max ordinal under Read Committed.
+const lockStory = (tx: Prisma.TransactionClient, storyId: string) =>
+  tx.$executeRaw`SELECT 1 FROM "Story" WHERE id = ${storyId} FOR UPDATE`;
+
+const assertAnnotationInStory = async (
+  annotationId: string,
+  storyId: string,
+) => {
+  const count = await prisma.annotation.count({
+    where: { id: annotationId, storyId },
+  });
+  if (count === 0) {
+    throw new Error("Annotation not found");
   }
-
-  throw new Error(fallback);
 };
 
 // Story actions
-export const createStory = async (formData: FormData) => {
+export const createStory = async (
+  formData: FormData,
+): Promise<ActionResult> => {
   try {
     const title = getString(formData, "title");
     if (!title.trim()) {
@@ -151,11 +174,14 @@ export const createStory = async (formData: FormData) => {
 
     redirect(`/editor/${story.id}`);
   } catch (error) {
-    handleActionError("create story", error);
+    return actionFailure("create story", error);
   }
 };
 
-export const updateStory = async (id: string, formData: FormData) => {
+export const updateStory = async (
+  id: string,
+  formData: FormData,
+): Promise<ActionResult> => {
   try {
     if (!id) {
       throw new Error("Story ID is required");
@@ -182,11 +208,11 @@ export const updateStory = async (id: string, formData: FormData) => {
 
     revalidatePath(`/editor/${id}`);
   } catch (error) {
-    handleActionError("update story", error);
+    return actionFailure("update story", error);
   }
 };
 
-export const deleteStory = async (id: string) => {
+export const deleteStory = async (id: string): Promise<ActionResult> => {
   try {
     if (!id) {
       throw new Error("Story ID is required");
@@ -199,11 +225,11 @@ export const deleteStory = async (id: string) => {
     revalidatePath("/");
     redirect("/");
   } catch (error) {
-    handleActionError("delete story", error);
+    return actionFailure("delete story", error);
   }
 };
 
-export const restoreStory = async (id: string) => {
+export const restoreStory = async (id: string): Promise<ActionResult> => {
   try {
     if (!id) {
       throw new Error("Story ID is required");
@@ -216,7 +242,7 @@ export const restoreStory = async (id: string) => {
     revalidatePath("/");
     revalidatePath("/admin/storiiies");
   } catch (error) {
-    handleActionError("restore story", error);
+    return actionFailure("restore story", error);
   }
 };
 
@@ -309,7 +335,7 @@ export const createAnnotation = async (
     imageUrls?: string[];
     audioUrls?: string[];
   },
-) => {
+): Promise<ActionResult> => {
   try {
     if (!storyId) {
       throw new Error("Story ID is required");
@@ -350,51 +376,49 @@ export const createAnnotation = async (
       return isValidHttpUrl(url);
     });
 
-    const maxOrdinal = await prisma.annotation.aggregate({
-      where: { storyId },
-      _max: { ordinal: true },
-    });
+    await prisma.$transaction(async (tx) => {
+      await lockStory(tx, storyId);
+      const maxOrdinal = await tx.annotation.aggregate({
+        where: { storyId },
+        _max: { ordinal: true },
+      });
 
-    const annotation = await prisma.annotation.create({
-      data: {
-        storyId,
-        text: data.text,
-        x: data.x,
-        y: data.y,
-        width: data.width,
-        height: data.height,
-        viewportX: data.viewportX,
-        viewportY: data.viewportY,
-        viewportWidth: data.viewportWidth,
-        viewportHeight: data.viewportHeight,
-        ordinal: (maxOrdinal._max.ordinal ?? -1) + 1,
-        images: validImageUrls?.length
-          ? {
-              create: validImageUrls.map((url, index) => ({
-                imageUrl: url,
-                ordinal: index,
-              })),
-            }
-          : undefined,
-        audio: validAudioUrls?.length
-          ? {
-              create: validAudioUrls.map((url, index) => ({
-                audioUrl: url,
-                ordinal: index,
-              })),
-            }
-          : undefined,
-      },
-      include: {
-        images: { orderBy: { ordinal: "asc" } },
-        audio: { orderBy: { ordinal: "asc" } },
-      },
+      return tx.annotation.create({
+        data: {
+          storyId,
+          text: data.text,
+          x: data.x,
+          y: data.y,
+          width: data.width,
+          height: data.height,
+          viewportX: data.viewportX,
+          viewportY: data.viewportY,
+          viewportWidth: data.viewportWidth,
+          viewportHeight: data.viewportHeight,
+          ordinal: (maxOrdinal._max.ordinal ?? -1) + 1,
+          images: validImageUrls?.length
+            ? {
+                create: validImageUrls.map((url, index) => ({
+                  imageUrl: url,
+                  ordinal: index,
+                })),
+              }
+            : undefined,
+          audio: validAudioUrls?.length
+            ? {
+                create: validAudioUrls.map((url, index) => ({
+                  audioUrl: url,
+                  ordinal: index,
+                })),
+              }
+            : undefined,
+        },
+      });
     });
 
     revalidatePath(`/editor/${storyId}`);
-    return annotation;
   } catch (error) {
-    handleActionError("create annotation", error);
+    return actionFailure("create annotation", error);
   }
 };
 
@@ -408,7 +432,7 @@ export const updateAnnotation = async (
     width?: number;
     height?: number;
   },
-) => {
+): Promise<ActionResult> => {
   try {
     if (!id || !storyId) {
       throw new Error("Annotation ID and Story ID are required");
@@ -422,35 +446,45 @@ export const updateAnnotation = async (
       height: data.height,
     });
 
-    const annotation = await prisma.annotation.update({
-      where: { id },
+    const { count } = await prisma.annotation.updateMany({
+      where: { id, storyId },
       data,
     });
+    if (count === 0) {
+      throw new Error("Annotation not found");
+    }
 
     revalidatePath(`/editor/${storyId}`);
-    return annotation;
   } catch (error) {
-    handleActionError("update annotation", error);
+    return actionFailure("update annotation", error);
   }
 };
 
-export const deleteAnnotation = async (id: string, storyId: string) => {
+export const deleteAnnotation = async (
+  id: string,
+  storyId: string,
+): Promise<ActionResult> => {
   try {
     if (!id || !storyId) {
       throw new Error("Annotation ID and Story ID are required");
     }
 
-    await prisma.annotation.delete({ where: { id } });
+    const { count } = await prisma.annotation.deleteMany({
+      where: { id, storyId },
+    });
+    if (count === 0) {
+      throw new Error("Annotation not found");
+    }
     revalidatePath(`/editor/${storyId}`);
   } catch (error) {
-    handleActionError("delete annotation", error);
+    return actionFailure("delete annotation", error);
   }
 };
 
 export const reorderAnnotations = async (
   storyId: string,
   annotationIds: string[],
-) => {
+): Promise<ActionResult> => {
   try {
     if (!storyId) {
       throw new Error("Story ID is required");
@@ -458,6 +492,21 @@ export const reorderAnnotations = async (
 
     if (!Array.isArray(annotationIds) || annotationIds.length === 0) {
       throw new Error("Annotation IDs are required");
+    }
+
+    // A partial or stale list would leave duplicate ordinals behind.
+    const [matching, total] = await Promise.all([
+      prisma.annotation.count({
+        where: { id: { in: annotationIds }, storyId },
+      }),
+      prisma.annotation.count({ where: { storyId } }),
+    ]);
+    if (
+      new Set(annotationIds).size !== annotationIds.length ||
+      matching !== annotationIds.length ||
+      total !== annotationIds.length
+    ) {
+      throw new Error("Annotation list is out of date. Reload and try again.");
     }
 
     await prisma.$transaction(
@@ -471,71 +520,23 @@ export const reorderAnnotations = async (
 
     revalidatePath(`/editor/${storyId}`);
   } catch (error) {
-    handleActionError("reorder annotations", error);
+    return actionFailure("reorder annotations", error);
   }
 };
 
 // Annotation Image actions
-export const addAnnotationImage = async (
-  annotationId: string,
-  storyId: string,
-  imageUrl: string,
-) => {
-  try {
-    if (!annotationId || !storyId) {
-      throw new Error("Annotation ID and Story ID are required");
-    }
-
-    if (!imageUrl || !isValidHttpUrl(imageUrl)) {
-      throw new Error("Valid image URL is required");
-    }
-
-    const maxOrdinal = await prisma.annotationImage.aggregate({
-      where: { annotationId },
-      _max: { ordinal: true },
-    });
-
-    await prisma.annotationImage.create({
-      data: {
-        annotationId,
-        imageUrl,
-        ordinal: (maxOrdinal._max.ordinal ?? -1) + 1,
-      },
-    });
-
-    revalidatePath(`/editor/${storyId}`);
-  } catch (error) {
-    handleActionError("add annotation image", error);
-  }
-};
-
-export const removeAnnotationImage = async (
-  imageId: string,
-  storyId: string,
-) => {
-  try {
-    if (!imageId || !storyId) {
-      throw new Error("Image ID and Story ID are required");
-    }
-
-    await prisma.annotationImage.delete({ where: { id: imageId } });
-    revalidatePath(`/editor/${storyId}`);
-  } catch (error) {
-    handleActionError("remove annotation image", error);
-  }
-};
-
 export const updateAnnotationImages = async (
   annotationId: string,
   storyId: string,
   imageUrls: string[],
-) => {
+): Promise<ActionResult> => {
   try {
     if (!annotationId || !storyId) {
       throw new Error("Annotation ID and Story ID are required");
     }
 
-    // Filter and validate URLs
+    await assertAnnotationInStory(annotationId, storyId);
+
     const validUrls = imageUrls.filter(
       (url) => url.trim() && isValidHttpUrl(url),
     );
@@ -556,7 +557,7 @@ export const updateAnnotationImages = async (
 
     revalidatePath(`/editor/${storyId}`);
   } catch (error) {
-    handleActionError("update annotation images", error);
+    return actionFailure("update annotation images", error);
   }
 };
 
@@ -565,13 +566,14 @@ export const updateAnnotationAudio = async (
   annotationId: string,
   storyId: string,
   audioUrls: string[],
-) => {
+): Promise<ActionResult> => {
   try {
     if (!annotationId || !storyId) {
       throw new Error("Annotation ID and Story ID are required");
     }
 
-    // Filter and validate URLs
+    await assertAnnotationInStory(annotationId, storyId);
+
     const validUrls = audioUrls.filter(
       (url) => url.trim() && isValidHttpUrl(url),
     );
@@ -592,7 +594,7 @@ export const updateAnnotationAudio = async (
 
     revalidatePath(`/editor/${storyId}`);
   } catch (error) {
-    handleActionError("update annotation audio", error);
+    return actionFailure("update annotation audio", error);
   }
 };
 
