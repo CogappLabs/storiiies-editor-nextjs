@@ -13,9 +13,10 @@ const en = {
     close: "Close",
     cancel: "Cancel",
     delete: "Delete",
+    confirmDeleteTitle: "Confirm deletion",
+    deleteFailed: "Could not delete. Please try again.",
     save: "Save",
     add: "Add",
-    data: "Data",
     viewer: (name: string) => `${name} Viewer`,
   },
   home: {
@@ -184,7 +185,6 @@ const en = {
     },
     actionLabels: {
       edit: "Edit",
-      delete: "Delete",
       restore: "Restore",
       manifest: "Manifest",
       viewInfoJson: "info.json",

@@ -2,37 +2,29 @@
 
 import { useRouter } from "next/navigation";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
+import { ConfirmDeleteButton } from "./ui";
 
-interface DeleteImageButtonProps {
-  imageId: string;
-}
-
-const DeleteImageButton = ({ imageId }: DeleteImageButtonProps) => {
+const DeleteImageButton = ({ imageId }: { imageId: string }) => {
   const strings = useStrings();
   const router = useRouter();
 
-  const handleDelete = async () => {
-    if (confirm(strings.admin.deleteImageConfirm)) {
-      const response = await fetch(`/api/images/${imageId}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        router.refresh();
-      } else {
-        const data = await response.json();
-        alert(data.error || strings.admin.deleteImageFailed);
-      }
+  const deleteImage = async () => {
+    const response = await fetch(`/api/images/${imageId}`, {
+      method: "DELETE",
+    });
+    if (response.ok) {
+      router.refresh();
+      return undefined;
     }
+    const data = await response.json().catch(() => null);
+    return data?.error ?? strings.common.deleteFailed;
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleDelete}
-      className="text-sm text-danger hover:underline rounded"
-    >
-      {strings.admin.actionLabels.delete}
-    </button>
+    <ConfirmDeleteButton
+      message={strings.admin.deleteImageConfirm}
+      onDelete={deleteImage}
+    />
   );
 };
 

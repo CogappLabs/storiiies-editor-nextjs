@@ -176,8 +176,11 @@ test("reorder annotations by dragging with the keyboard", async ({ page }) => {
 
 test("delete an annotation", async ({ page }) => {
   await page.goto(`/editor/${storyId}`);
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Delete annotation" }).first().click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Delete", exact: true })
+    .click();
 
   await expect.poll(async () => (await annotations(page)).length).toBe(1);
 });
@@ -193,8 +196,11 @@ test("rename and delete the story", async ({ page }) => {
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Settings" }).click();
-  page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: /Delete Story/ }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /Delete Story/ })
+    .click();
   await page.waitForURL((url) => url.pathname === "/");
 
   const res = await page.request.get(`/api/manifest/${storyId}`);

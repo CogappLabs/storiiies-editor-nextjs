@@ -13,6 +13,7 @@ import {
 } from "@/lib/actions/annotations";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { AnnotationWithMedia } from "@/lib/types";
+import { ConfirmDialog } from "../ui";
 import AnnotationCard from "./AnnotationCard";
 
 interface AnnotationListProps {
@@ -28,9 +29,10 @@ const AnnotationList = ({
   selectedId,
   onSelect,
 }: AnnotationListProps) => {
-  const strings = useStrings().annotationList;
+  const { annotationList: strings, common } = useStrings();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   // Shows the dropped order at once; reverts to the server order when the
   // transition ends, by which point revalidation has delivered it.
   const [ordered, setOrdered] = useOptimistic(annotations);
@@ -57,10 +59,14 @@ const AnnotationList = ({
     });
   };
 
-  const handleDelete = (id: string) => {
-    if (!confirm(strings.deleteConfirm)) return;
-    if (selectedId === id) onSelect(null);
-    run(() => deleteAnnotation(id, storyId));
+  const confirmDelete = () => {
+    if (!deletingId) return;
+    if (selectedId === deletingId) onSelect(null);
+    run(async () => {
+      const res = await deleteAnnotation(deletingId, storyId);
+      if (!res?.error) setDeletingId(null);
+      return res;
+    });
   };
 
   return (
@@ -106,7 +112,7 @@ const AnnotationList = ({
                           isSelected={selectedId === annotation.id}
                           dragHandleProps={provided.dragHandleProps}
                           onSelect={() => onSelect(annotation.id)}
-                          onDelete={() => handleDelete(annotation.id)}
+                          onDelete={() => setDeletingId(annotation.id)}
                         />
                       </div>
                     )}
@@ -117,6 +123,17 @@ const AnnotationList = ({
             )}
           </Droppable>
         </DragDropContext>
+      )}
+      {deletingId && (
+        <ConfirmDialog
+          title={common.confirmDeleteTitle}
+          message={strings.deleteConfirm}
+          confirmLabel={common.delete}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeletingId(null)}
+          pending={isPending}
+          error={error}
+        />
       )}
     </>
   );
