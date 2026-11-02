@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import type { Prisma } from "@/generated/prisma/client";
+import { deleteOrphanedMedia } from "@/lib/blob";
 import { prisma } from "@/lib/prisma";
 import {
   type ActionResult,
@@ -26,6 +28,14 @@ const assertAnnotationInStory = async (
     throw new Error("Annotation not found");
   }
 };
+
+// After the response, so a slow or failing Blob call never blocks a save.
+const cleanUpMedia = (urls: string[]) =>
+  after(() =>
+    deleteOrphanedMedia(urls).catch((error) =>
+      console.error("Failed to delete orphaned media:", error),
+    ),
+  );
 
 export const createAnnotation = async (
   storyId: string,
@@ -117,12 +127,18 @@ export const deleteAnnotation = async (
   storyId: string,
 ): Promise<ActionResult> => {
   try {
-    const { count } = await prisma.annotation.deleteMany({
+    const annotation = await prisma.annotation.findFirst({
       where: { id, storyId },
+      select: { images: true, audio: true },
     });
-    if (count === 0) {
+    if (!annotation) {
       throw new Error("Annotation not found");
     }
+    await prisma.annotation.delete({ where: { id } });
+    cleanUpMedia([
+      ...annotation.images.map((img) => img.imageUrl),
+      ...annotation.audio.map((aud) => aud.audioUrl),
+    ]);
     revalidatePath(`/editor/${storyId}`);
   } catch (error) {
     return actionFailure("delete annotation", error);
@@ -167,6 +183,10 @@ export const updateAnnotationImages = async (
 ): Promise<ActionResult> => {
   try {
     await assertAnnotationInStory(annotationId, storyId);
+    const previous = await prisma.annotationImage.findMany({
+      where: { annotationId },
+      select: { imageUrl: true },
+    });
     await prisma.$transaction([
       prisma.annotationImage.deleteMany({ where: { annotationId } }),
       prisma.annotationImage.createMany({
@@ -177,6 +197,7 @@ export const updateAnnotationImages = async (
         })),
       }),
     ]);
+    cleanUpMedia(previous.map((row) => row.imageUrl));
     revalidatePath(`/editor/${storyId}`);
   } catch (error) {
     return actionFailure("update annotation images", error);
@@ -190,6 +211,10 @@ export const updateAnnotationAudio = async (
 ): Promise<ActionResult> => {
   try {
     await assertAnnotationInStory(annotationId, storyId);
+    const previous = await prisma.annotationAudio.findMany({
+      where: { annotationId },
+      select: { audioUrl: true },
+    });
     await prisma.$transaction([
       prisma.annotationAudio.deleteMany({ where: { annotationId } }),
       prisma.annotationAudio.createMany({
@@ -200,6 +225,7 @@ export const updateAnnotationAudio = async (
         })),
       }),
     ]);
+    cleanUpMedia(previous.map((row) => row.audioUrl));
     revalidatePath(`/editor/${storyId}`);
   } catch (error) {
     return actionFailure("update annotation audio", error);

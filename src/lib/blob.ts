@@ -1,6 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { del, list, put } from "@vercel/blob";
+import { prisma } from "@/lib/prisma";
 
 const CONTENT_TYPES: Record<string, string> = {
   ".json": "application/ld+json",
@@ -86,4 +87,35 @@ export const getBlobBaseUrl = (): string => {
     throw new Error("Invalid BLOB_READ_WRITE_TOKEN format");
   }
   return `https://${match[1]}.public.blob.vercel-storage.com`;
+};
+
+/**
+ * Deletes uploaded annotation media (this store's media/ folder) that no
+ * annotation references any more. Pasted URLs from other hosts are ignored.
+ */
+export const deleteOrphanedMedia = async (urls: string[]) => {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return;
+  const store = new URL(getBlobBaseUrl()).origin;
+  const uploaded = urls.filter((url) => {
+    const parsed = URL.canParse(url) ? new URL(url) : null;
+    return parsed?.origin === store && parsed.pathname.startsWith("/media/");
+  });
+  if (uploaded.length === 0) return;
+
+  const [images, audio] = await Promise.all([
+    prisma.annotationImage.findMany({
+      where: { imageUrl: { in: uploaded } },
+      select: { imageUrl: true },
+    }),
+    prisma.annotationAudio.findMany({
+      where: { audioUrl: { in: uploaded } },
+      select: { audioUrl: true },
+    }),
+  ]);
+  const inUse = new Set([
+    ...images.map((i) => i.imageUrl),
+    ...audio.map((a) => a.audioUrl),
+  ]);
+  const orphans = uploaded.filter((url) => !inUse.has(url));
+  if (orphans.length > 0) await del(orphans);
 };
