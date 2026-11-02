@@ -1,4 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
+import { del } from "@vercel/blob";
 import sharp from "sharp";
 import { blobToken } from "../playwright.config";
 
@@ -26,6 +27,12 @@ type Manifest = {
 test.describe.configure({ mode: "serial" });
 
 let storyId = "";
+let uploadedUrl = "";
+
+// The throwaway database never references it again, so nothing else would.
+test.afterAll(async () => {
+  if (uploadedUrl) await del(uploadedUrl, { token: blobToken });
+});
 const title = `[e2e] ${new Date().toISOString()}`;
 
 const manifest = async (page: Page): Promise<Manifest> => {
@@ -115,6 +122,7 @@ test("upload an image file, which is resized to WebP", async ({ page }) => {
   const urlInput = page.getByLabel("Images").last();
   await expect(urlInput).toHaveValue(/\.webp$/, { timeout: 30_000 });
   const uploaded = await urlInput.inputValue();
+  uploadedUrl = uploaded;
   await page.getByRole("button", { name: "Save" }).click();
 
   const res = await page.request.get(uploaded);
