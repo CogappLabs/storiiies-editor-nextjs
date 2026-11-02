@@ -120,26 +120,27 @@ export const clampRect = (
 // Moves an annotation's rect, crosshairs and handles without a React render,
 // so drags and key nudges stay smooth until the save round-trips.
 export const drawRect = (group: Element, r: Rect) => {
-  const rect = group.querySelector(".annotation-rect");
-  rect?.setAttribute("x", String(r.x));
-  rect?.setAttribute("y", String(r.y));
-  rect?.setAttribute("width", String(r.width));
-  rect?.setAttribute("height", String(r.height));
+  for (const rect of group.querySelectorAll(
+    ".annotation-rect, .annotation-underlay",
+  )) {
+    rect.setAttribute("x", String(r.x));
+    rect.setAttribute("y", String(r.y));
+    rect.setAttribute("width", String(r.width));
+    rect.setAttribute("height", String(r.height));
+  }
 
-  const [hLine, vLine] = group.querySelectorAll(".crosshair-group line");
-  if (hLine && vLine) {
-    const cx = r.x + r.width / 2;
-    const cy = r.y + r.height / 2;
-    const size =
-      Math.min(r.width, r.height) * VIEWER_CONFIG.crosshair.sizeRatio;
-    hLine.setAttribute("x1", String(cx - size));
-    hLine.setAttribute("y1", String(cy));
-    hLine.setAttribute("x2", String(cx + size));
-    hLine.setAttribute("y2", String(cy));
-    vLine.setAttribute("x1", String(cx));
-    vLine.setAttribute("y1", String(cy - size));
-    vLine.setAttribute("x2", String(cx));
-    vLine.setAttribute("y2", String(cy + size));
+  // Crosshair lines alternate horizontal, vertical (underlay pair, then top pair).
+  const cx = r.x + r.width / 2;
+  const cy = r.y + r.height / 2;
+  const size = Math.min(r.width, r.height) * VIEWER_CONFIG.crosshair.sizeRatio;
+  for (const [i, line] of group
+    .querySelectorAll(".crosshair-group line")
+    .entries()) {
+    const horizontal = i % 2 === 0;
+    line.setAttribute("x1", String(horizontal ? cx - size : cx));
+    line.setAttribute("y1", String(horizontal ? cy : cy - size));
+    line.setAttribute("x2", String(horizontal ? cx + size : cx));
+    line.setAttribute("y2", String(horizontal ? cy : cy + size));
   }
 
   const handles = getHandlePositions(r.x, r.y, r.width, r.height);

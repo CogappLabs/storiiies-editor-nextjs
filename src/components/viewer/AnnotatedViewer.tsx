@@ -263,14 +263,33 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
         const group = document.createElementNS(SVG_NS, "g");
         group.setAttribute("data-annotation-id", ann.id);
 
+        const { colours, boxStroke } = VIEWER_CONFIG;
+        const boxWidth = isSelected ? boxStroke.selected : boxStroke.normal;
+
+        // Charcoal underlay keeps the box visible on light parts of the image.
+        const underlay = document.createElementNS(SVG_NS, "rect");
+        underlay.setAttribute("fill", "none");
+        underlay.setAttribute("stroke", colours.charcoal);
+        underlay.setAttribute(
+          "stroke-width",
+          String(boxWidth + boxStroke.underlayExtra),
+        );
+        underlay.setAttribute("vector-effect", "non-scaling-stroke");
+        underlay.setAttribute("class", "annotation-underlay");
+        underlay.style.pointerEvents = "none";
+        for (const [key, value] of Object.entries(origRect)) {
+          underlay.setAttribute(key, String(value));
+        }
+        group.appendChild(underlay);
+
         const rect = document.createElementNS(SVG_NS, "rect");
         rect.setAttribute("x", String(ann.x));
         rect.setAttribute("y", String(ann.y));
         rect.setAttribute("width", String(ann.width));
         rect.setAttribute("height", String(ann.height));
         rect.setAttribute("fill", "transparent");
-        rect.setAttribute("stroke", isSelected ? "#ff6600" : "#00bfff");
-        rect.setAttribute("stroke-width", isSelected ? "3" : "2");
+        rect.setAttribute("stroke", isSelected ? colours.blue : colours.cream);
+        rect.setAttribute("stroke-width", String(boxWidth));
         rect.setAttribute("vector-effect", "non-scaling-stroke");
         rect.setAttribute("class", "annotation-rect");
         rect.style.pointerEvents = "auto";
@@ -361,25 +380,25 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
           const crosshairGroup = document.createElementNS(SVG_NS, "g");
           crosshairGroup.setAttribute("class", "crosshair-group");
 
-          for (const [x1, y1, x2, y2] of [
-            [cx - size, cy, cx + size, cy],
-            [cx, cy - size, cx, cy + size],
-          ] as [number, number, number, number][]) {
-            const line = document.createElementNS(SVG_NS, "line");
-            line.setAttribute("x1", String(x1));
-            line.setAttribute("y1", String(y1));
-            line.setAttribute("x2", String(x2));
-            line.setAttribute("y2", String(y2));
-            line.setAttribute(
-              "stroke",
-              isSelected ? "red" : VIEWER_CONFIG.crosshair.strokeColor,
-            );
-            line.setAttribute(
-              "stroke-width",
-              String(VIEWER_CONFIG.crosshair.strokeWidth),
-            );
-            line.setAttribute("vector-effect", "non-scaling-stroke");
-            crosshairGroup.appendChild(line);
+          const lineWidth = VIEWER_CONFIG.crosshair.strokeWidth;
+          for (const [colour, width] of [
+            [colours.charcoal, lineWidth + boxStroke.underlayExtra],
+            [isSelected ? colours.blue : colours.cream, lineWidth],
+          ] as const) {
+            for (const [x1, y1, x2, y2] of [
+              [cx - size, cy, cx + size, cy],
+              [cx, cy - size, cx, cy + size],
+            ] as [number, number, number, number][]) {
+              const line = document.createElementNS(SVG_NS, "line");
+              line.setAttribute("x1", String(x1));
+              line.setAttribute("y1", String(y1));
+              line.setAttribute("x2", String(x2));
+              line.setAttribute("y2", String(y2));
+              line.setAttribute("stroke", colour);
+              line.setAttribute("stroke-width", String(width));
+              line.setAttribute("vector-effect", "non-scaling-stroke");
+              crosshairGroup.appendChild(line);
+            }
           }
 
           group.appendChild(crosshairGroup);
@@ -397,8 +416,8 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
             circle.setAttribute("cx", String(pos.cx));
             circle.setAttribute("cy", String(pos.cy));
             circle.setAttribute("r", String(handleRadius));
-            circle.setAttribute("fill", "white");
-            circle.setAttribute("stroke", "#ff6600");
+            circle.setAttribute("fill", colours.handleFill);
+            circle.setAttribute("stroke", colours.blue);
             circle.setAttribute("stroke-width", "2");
             circle.setAttribute("vector-effect", "non-scaling-stroke");
             circle.setAttribute("class", "resize-handle");
