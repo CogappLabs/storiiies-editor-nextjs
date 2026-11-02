@@ -44,7 +44,7 @@ const xywh = (target: string) =>
   target.split("#xywh=")[1].split(",").map(Number);
 
 const addAnnotation = async (page: Page, text: string) => {
-  await page.getByRole("button", { name: "Add", exact: false }).first().click();
+  await page.getByRole("button", { name: /^Add/ }).first().click();
   await page.getByLabel("Annotation text").fill(text);
   await page.getByRole("button", { name: "Save" }).click();
   await expect(
@@ -70,7 +70,7 @@ test("create a story from a IIIF image URL", async ({ page }) => {
 test("add annotations, one with an image URL", async ({ page }) => {
   await page.goto(`/editor/${storyId}`);
 
-  await page.getByRole("button", { name: "Add", exact: false }).first().click();
+  await page.getByRole("button", { name: /^Add/ }).first().click();
   await page.getByLabel("Annotation text").fill("First <note> & more");
   await page.getByRole("button", { name: /Add image/ }).click();
   await page.getByLabel("Images (optional)").fill(IMAGE_URL);
@@ -149,14 +149,6 @@ test("resize and move the selected box with the keyboard", async ({ page }) => {
   await box.press("ArrowDown");
   await box.press("ArrowRight");
 
-  await expect
-    .poll(async () => xywh((await annotations(page))[0].target))
-    .toEqual([
-      expect.any(Number),
-      expect.any(Number),
-      expect.any(Number),
-      expect.any(Number),
-    ]);
   await expect
     .poll(async () => {
       const [nx, ny, nw, nh] = xywh((await annotations(page))[0].target);
