@@ -25,6 +25,9 @@ const Header = <T extends string>({
         {backLink && (
           <Link
             href={backLink.href}
+            // On public preview pages the editor is behind basic auth, and a
+            // prefetch 401 makes the browser show the login prompt.
+            prefetch={false}
             className="text-sm text-cogapp-cream hover:text-white whitespace-nowrap"
           >
             ← {backLink.label}
