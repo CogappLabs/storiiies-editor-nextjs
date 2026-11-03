@@ -5,14 +5,18 @@ import type { Story } from "@/generated/prisma/client";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 
 interface StoryFieldsProps {
-  story?: Pick<Story, "title" | "author" | "description" | "attribution">;
+  story?: Pick<
+    Story,
+    "title" | "author" | "description" | "attribution" | "annotationMode"
+  >;
   titleRef?: Ref<HTMLInputElement>;
+  modeLocked?: boolean;
 }
 
 const inputClass = "w-full px-3 py-2 border border-cogapp-charcoal/20 rounded";
 
 /** Uncontrolled inputs named for the story server actions' FormData. */
-const StoryFields = ({ story, titleRef }: StoryFieldsProps) => {
+const StoryFields = ({ story, titleRef, modeLocked }: StoryFieldsProps) => {
   const strings = useStrings().storyFields;
   const id = useId();
   const field = (name: string) => `${id}-${name}`;
@@ -79,6 +83,29 @@ const StoryFields = ({ story, titleRef }: StoryFieldsProps) => {
           className={inputClass}
         />
       </div>
+      <fieldset disabled={modeLocked}>
+        <legend className="block text-sm font-medium mb-1">
+          {strings.annotationMode}
+        </legend>
+        <div className="flex gap-4">
+          {(["region", "pin"] as const).map((mode) => (
+            <label key={mode} className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="annotationMode"
+                value={mode}
+                defaultChecked={(story?.annotationMode ?? "region") === mode}
+              />
+              {mode === "region" ? strings.regionMode : strings.pinMode}
+            </label>
+          ))}
+        </div>
+        {modeLocked && (
+          <p className="text-xs text-cogapp-gray mt-1">
+            {strings.annotationModeLocked}
+          </p>
+        )}
+      </fieldset>
     </div>
   );
 };

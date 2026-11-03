@@ -42,7 +42,7 @@ export const getPositiveInt = (formData: FormData, key: string): number => {
   return num;
 };
 
-/** Throws on a negative position or a non-positive size; skips absent keys. */
+/** Throws on a negative position or size; skips absent keys. Pins are zero-size. */
 export const validateCoordinates = ({
   x,
   y,
@@ -59,8 +59,8 @@ export const validateCoordinates = ({
   if (!valid(x, 0) || !valid(y, 0)) {
     throw new Error(errors.coordinatesNegative);
   }
-  if (!valid(width, Number.MIN_VALUE) || !valid(height, Number.MIN_VALUE)) {
-    throw new Error(errors.sizeNotPositive);
+  if (!valid(width, 0) || !valid(height, 0)) {
+    throw new Error(errors.sizeNegative);
   }
 };
 

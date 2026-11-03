@@ -34,12 +34,14 @@ const viewerInstances = new WeakMap<
 >();
 
 const SVG_NS = "http://www.w3.org/2000/svg";
+const PIN_SCALE = 1.5;
 
 interface Props {
   imageUrl: string;
   imageWidth: number;
   imageHeight: number;
   annotations: Annotation[];
+  pinMode?: boolean;
   onAnnotationUpdate?: (id: string, coords: Rect) => void;
   onAnnotationSelect?: (id: string | null) => void;
   onReadyChange?: (ready: boolean) => void;
@@ -68,6 +70,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
       imageWidth,
       imageHeight,
       annotations,
+      pinMode = false,
       onAnnotationUpdate,
       onAnnotationSelect,
       onReadyChange,
@@ -136,7 +139,8 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
       onReadyChange?.(isReady);
     }, [isReady, onReadyChange]);
 
-    // Get handle radius in image coordinates for consistent ~6px screen size
+    // Get handle radius in image coordinates for consistent ~6px screen size.
+    // Pins are drawn at PIN_SCALE times this.
     const getHandleRadius = useCallback(() => {
       const viewer = getViewer();
       if (!viewer) return 60;
@@ -249,7 +253,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
       while (g.firstChild) g.removeChild(g.firstChild);
 
       const handleRadius = getHandleRadius();
-      let focusTarget: SVGRectElement | null = null;
+      let focusTarget: SVGElement | null = null;
 
       for (const ann of annotations) {
         const isSelected = ann.id === selectedAnnotationId;
@@ -266,42 +270,61 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
         const { colours, boxStroke } = VIEWER_CONFIG;
         const boxWidth = isSelected ? boxStroke.selected : boxStroke.normal;
 
-        // Charcoal underlay keeps the box visible on light parts of the image.
-        const underlay = document.createElementNS(SVG_NS, "rect");
-        underlay.setAttribute("fill", "none");
-        underlay.setAttribute("stroke", colours.charcoal);
-        underlay.setAttribute(
-          "stroke-width",
-          String(boxWidth + boxStroke.underlayExtra),
-        );
-        underlay.setAttribute("vector-effect", "non-scaling-stroke");
-        underlay.setAttribute("class", "annotation-underlay");
-        underlay.style.pointerEvents = "none";
-        for (const [key, value] of Object.entries(origRect)) {
-          underlay.setAttribute(key, String(value));
-        }
-        group.appendChild(underlay);
+        let shape: SVGElement;
+        if (pinMode) {
+          shape = document.createElementNS(SVG_NS, "circle");
+          shape.setAttribute("cx", String(ann.x));
+          shape.setAttribute("cy", String(ann.y));
+          shape.setAttribute("r", String(handleRadius * PIN_SCALE));
+          shape.setAttribute("fill", isSelected ? colours.blue : colours.cream);
+          shape.setAttribute("stroke", colours.charcoal);
+          shape.setAttribute("stroke-width", String(boxWidth));
+          shape.setAttribute("vector-effect", "non-scaling-stroke");
+          shape.setAttribute("class", "annotation-pin");
+        } else {
+          // Charcoal underlay keeps the box visible on light parts of the image.
+          const underlay = document.createElementNS(SVG_NS, "rect");
+          underlay.setAttribute("fill", "none");
+          underlay.setAttribute("stroke", colours.charcoal);
+          underlay.setAttribute(
+            "stroke-width",
+            String(boxWidth + boxStroke.underlayExtra),
+          );
+          underlay.setAttribute("vector-effect", "non-scaling-stroke");
+          underlay.setAttribute("class", "annotation-underlay");
+          underlay.style.pointerEvents = "none";
+          for (const [key, value] of Object.entries(origRect)) {
+            underlay.setAttribute(key, String(value));
+          }
+          group.appendChild(underlay);
 
-        const rect = document.createElementNS(SVG_NS, "rect");
-        rect.setAttribute("x", String(ann.x));
-        rect.setAttribute("y", String(ann.y));
-        rect.setAttribute("width", String(ann.width));
-        rect.setAttribute("height", String(ann.height));
-        rect.setAttribute("fill", "transparent");
-        rect.setAttribute("stroke", isSelected ? colours.blue : colours.cream);
-        rect.setAttribute("stroke-width", String(boxWidth));
-        rect.setAttribute("vector-effect", "non-scaling-stroke");
-        rect.setAttribute("class", "annotation-rect");
-        rect.style.pointerEvents = "auto";
-        rect.style.cursor = isSelected ? "move" : "pointer";
+          const rect = document.createElementNS(SVG_NS, "rect");
+          rect.setAttribute("x", String(ann.x));
+          rect.setAttribute("y", String(ann.y));
+          rect.setAttribute("width", String(ann.width));
+          rect.setAttribute("height", String(ann.height));
+          rect.setAttribute("fill", "transparent");
+          rect.setAttribute(
+            "stroke",
+            isSelected ? colours.blue : colours.cream,
+          );
+          rect.setAttribute("stroke-width", String(boxWidth));
+          rect.setAttribute("vector-effect", "non-scaling-stroke");
+          rect.setAttribute("class", "annotation-rect");
+          shape = rect;
+        }
+        shape.style.pointerEvents = "auto";
+        shape.style.cursor = isSelected ? "move" : "pointer";
 
         if (isSelected) {
-          rect.setAttribute("tabindex", "0");
-          rect.setAttribute(
+          shape.setAttribute("tabindex", "0");
+          shape.setAttribute(
             "aria-label",
-            strings.viewerControls.selectedAnnotation,
+            pinMode
+              ? strings.viewerControls.selectedPin
+              : strings.viewerControls.selectedAnnotation,
           );
-          rect.addEventListener("keydown", (e) => {
+          shape.addEventListener("keydown", (e) => {
             const step = ARROW_STEPS[e.key];
             const viewer = getViewer();
             if (!step || !viewer) return;
@@ -311,23 +334,24 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
             const amount = 10 / getScale(viewer);
             const [dx, dy] = [step[0] * amount, step[1] * amount];
             const current = readRect(group);
-            const next = e.shiftKey
-              ? clampRect(
-                  {
-                    ...current,
-                    width: Math.max(10, current.width + dx),
-                    height: Math.max(10, current.height + dy),
-                  },
-                  "resize",
-                  imageWidth,
-                  imageHeight,
-                )
-              : clampRect(
-                  { ...current, x: current.x + dx, y: current.y + dy },
-                  "move",
-                  imageWidth,
-                  imageHeight,
-                );
+            const next =
+              e.shiftKey && !pinMode
+                ? clampRect(
+                    {
+                      ...current,
+                      width: Math.max(10, current.width + dx),
+                      height: Math.max(10, current.height + dy),
+                    },
+                    "resize",
+                    imageWidth,
+                    imageHeight,
+                  )
+                : clampRect(
+                    { ...current, x: current.x + dx, y: current.y + dy },
+                    "move",
+                    imageWidth,
+                    imageHeight,
+                  );
             drawRect(group, next);
 
             // One save per burst of key presses rather than one per press.
@@ -336,10 +360,10 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
               onAnnotationUpdateRef.current?.(ann.id, next);
             }, 400);
           });
-          focusTarget = rect;
+          focusTarget = shape;
         }
 
-        rect.addEventListener("pointerdown", (e) => {
+        shape.addEventListener("pointerdown", (e) => {
           e.stopPropagation();
 
           if (!isSelected) {
@@ -365,9 +389,10 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
           }
         });
 
-        group.appendChild(rect);
+        group.appendChild(shape);
 
         if (
+          !pinMode &&
           showCrosshairs &&
           ann.width >= VIEWER_CONFIG.crosshair.minDimension &&
           ann.height >= VIEWER_CONFIG.crosshair.minDimension
@@ -404,7 +429,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
           group.appendChild(crosshairGroup);
         }
 
-        if (isSelected) {
+        if (isSelected && !pinMode) {
           const handles = getHandlePositions(
             ann.x,
             ann.y,
@@ -453,6 +478,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
     }, [
       isReady,
       annotations,
+      pinMode,
       selectedAnnotationId,
       showCrosshairs,
       getHandleRadius,
@@ -549,6 +575,9 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
         for (const circle of g.querySelectorAll(".resize-handle")) {
           circle.setAttribute("r", String(radius));
         }
+        for (const pin of g.querySelectorAll(".annotation-pin")) {
+          pin.setAttribute("r", String(radius * PIN_SCALE));
+        }
       };
 
       viewer.addHandler("animation-finish", updateHandleSizes);
@@ -573,12 +602,27 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
       );
       if (!annotation) return;
 
-      const imageRect = new OpenSeadragon.Rect(
-        annotation.x,
-        annotation.y,
-        annotation.width,
-        annotation.height,
-      );
+      // A pin has no size, so go back to the view it was added from.
+      const { viewportX, viewportY, viewportWidth, viewportHeight } =
+        annotation;
+      const imageRect =
+        annotation.width === 0 &&
+        viewportX !== null &&
+        viewportY !== null &&
+        viewportWidth !== null &&
+        viewportHeight !== null
+          ? new OpenSeadragon.Rect(
+              viewportX,
+              viewportY,
+              viewportWidth,
+              viewportHeight,
+            )
+          : new OpenSeadragon.Rect(
+              annotation.x,
+              annotation.y,
+              annotation.width,
+              annotation.height,
+            );
       const viewportRect = viewer.viewport.imageToViewportRectangle(imageRect);
       viewer.viewport.fitBounds(viewportRect, false);
     }, [selectedAnnotationId, getViewer]);

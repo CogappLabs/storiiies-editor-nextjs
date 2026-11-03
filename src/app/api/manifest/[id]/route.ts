@@ -40,6 +40,8 @@ export async function GET(
     "",
   );
 
+  const canvasId = `${baseUrl}/api/manifest/${story.id}/canvas/1`;
+
   const manifest = {
     "@context": "http://iiif.io/api/presentation/3/context.json",
     id: `${baseUrl}/api/manifest/${story.id}`,
@@ -57,17 +59,17 @@ export async function GET(
     }),
     items: [
       {
-        id: `${baseUrl}/api/manifest/${story.id}/canvas/1`,
+        id: canvasId,
         type: "Canvas",
         width: story.imageSource.width,
         height: story.imageSource.height,
         items: [
           {
-            id: `${baseUrl}/api/manifest/${story.id}/canvas/1/page`,
+            id: `${canvasId}/page`,
             type: "AnnotationPage",
             items: [
               {
-                id: `${baseUrl}/api/manifest/${story.id}/canvas/1/page/image`,
+                id: `${canvasId}/page/image`,
                 type: "Annotation",
                 motivation: "painting",
                 body: {
@@ -88,7 +90,7 @@ export async function GET(
                     },
                   ],
                 },
-                target: `${baseUrl}/api/manifest/${story.id}/canvas/1`,
+                target: canvasId,
               },
             ],
           },
@@ -97,7 +99,7 @@ export async function GET(
           story.annotations.length > 0
             ? [
                 {
-                  id: `${baseUrl}/api/manifest/${story.id}/canvas/1/annotations`,
+                  id: `${canvasId}/annotations`,
                   type: "AnnotationPage",
                   items: story.annotations.map((annotation) => {
                     // StoriiiesViewer renders only TextualBody and Sound
@@ -135,11 +137,24 @@ export async function GET(
                         : textBody;
 
                     return {
-                      id: `${baseUrl}/api/manifest/${story.id}/canvas/1/annotations/${annotation.id}`,
+                      id: `${canvasId}/annotations/${annotation.id}`,
                       type: "Annotation",
                       motivation: "commenting",
                       body,
-                      target: `${baseUrl}/api/manifest/${story.id}/canvas/1#xywh=${Math.round(annotation.x)},${Math.round(annotation.y)},${Math.round(annotation.width)},${Math.round(annotation.height)}`,
+                      target:
+                        story.annotationMode === "pin"
+                          ? {
+                              type: "SpecificResource",
+                              // Clover resolves the canvas by type, so a
+                              // bare id string crashes its annotation panel.
+                              source: { id: canvasId, type: "Canvas" },
+                              selector: {
+                                type: "PointSelector",
+                                x: Math.round(annotation.x),
+                                y: Math.round(annotation.y),
+                              },
+                            }
+                          : `${canvasId}#xywh=${Math.round(annotation.x)},${Math.round(annotation.y)},${Math.round(annotation.width)},${Math.round(annotation.height)}`,
                     };
                   }),
                 },

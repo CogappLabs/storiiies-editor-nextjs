@@ -16,6 +16,11 @@ enum ImageSourceType {
   upload    // User uploaded a file
 }
 
+enum AnnotationMode {
+  region // Annotations are boxes
+  pin    // Annotations are points (IIIF PointSelector)
+}
+
 model ImageSource {
   id           String          @id @default(uuid())
   infoJsonUrl  String          @unique
@@ -36,6 +41,7 @@ model Story {
   author        String?
   description   String?
   attribution   String?
+  annotationMode AnnotationMode @default(region)
   imageSourceId String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -49,7 +55,7 @@ model Annotation {
   id        String   @id @default(uuid())
   storyId   String
   text      String
-  // Rectangle drawn by user (in image pixel coordinates)
+  // Rectangle drawn by user (in image pixel coordinates). A pin has zero size.
   x         Float
   y         Float
   width     Float

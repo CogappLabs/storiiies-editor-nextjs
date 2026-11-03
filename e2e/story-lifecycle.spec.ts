@@ -214,3 +214,33 @@ test("rename and delete the story", async ({ page }) => {
   const res = await page.request.get(`/api/manifest/${storyId}`);
   expect(res.status()).toBe(410);
 });
+
+test("pin mode stories export PointSelector targets", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("IIIF Image URL").fill(INFO_JSON);
+  await page.getByRole("button", { name: "Validate" }).click();
+  await page.getByLabel("Title").fill(`${title} pins`);
+  await page.getByLabel("Pins").check();
+  await page.getByRole("button", { name: /Create Story/ }).click();
+  await page.waitForURL(/\/editor\/[0-9a-f-]+$/);
+  storyId = page.url().split("/editor/")[1];
+
+  await addAnnotation(page, "A pin");
+  const pinTarget = async () =>
+    (await annotations(page))[0].target as unknown as {
+      selector: { type: string; x: number; y: number };
+    };
+  const { selector } = await pinTarget();
+  expect(selector.type).toBe("PointSelector");
+
+  await page.getByRole("button", { name: /A pin/ }).click();
+  const pin = page.getByLabel(/Selected pin/);
+  await pin.focus();
+  await pin.press("ArrowRight");
+  await expect
+    .poll(async () => (await pinTarget()).selector.x)
+    .toBeGreaterThan(selector.x);
+
+  await page.getByRole("button", { name: "Settings" }).click();
+  await expect(page.getByRole("dialog").getByLabel("Regions")).toBeDisabled();
+});

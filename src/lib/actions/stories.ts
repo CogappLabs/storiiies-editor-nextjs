@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { ImageSourceType } from "@/generated/prisma/client";
+import type {
+  AnnotationMode,
+  ImageSourceType,
+} from "@/generated/prisma/client";
 import { getStrings } from "@/lib/i18n/strings";
 import { prisma } from "@/lib/prisma";
 import { isValidHttpUrl } from "@/lib/validation";
@@ -17,6 +20,7 @@ import {
 const { errors } = getStrings();
 
 const SOURCE_TYPES: ImageSourceType[] = ["url", "manifest", "upload"];
+const ANNOTATION_MODES: AnnotationMode[] = ["region", "pin"];
 
 const storyFields = (formData: FormData) => {
   const title = getString(formData, "title").trim();
@@ -28,6 +32,10 @@ const storyFields = (formData: FormData) => {
     author: getOptionalString(formData, "author"),
     description: getOptionalString(formData, "description"),
     attribution: getOptionalString(formData, "attribution"),
+    // Absent when the settings form disables the choice.
+    annotationMode: ANNOTATION_MODES.find(
+      (m) => m === formData.get("annotationMode"),
+    ),
   };
 };
 
@@ -70,7 +78,23 @@ export const updateStory = async (
   formData: FormData,
 ): Promise<ActionResult> => {
   try {
-    await prisma.story.update({ where: { id }, data: storyFields(formData) });
+    const fields = storyFields(formData);
+    if (fields.annotationMode) {
+      const story = await prisma.story.findUniqueOrThrow({
+        where: { id },
+        select: {
+          annotationMode: true,
+          _count: { select: { annotations: true } },
+        },
+      });
+      if (
+        story.annotationMode !== fields.annotationMode &&
+        story._count.annotations > 0
+      ) {
+        throw new Error(errors.annotationModeLocked);
+      }
+    }
+    await prisma.story.update({ where: { id }, data: fields });
     revalidatePath(`/editor/${id}`);
   } catch (error) {
     return actionFailure("update story", error);

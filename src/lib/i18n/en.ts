@@ -117,6 +117,11 @@ export const en = {
     author: "Author",
     description: "Description",
     attribution: "Image attribution",
+    annotationMode: "Annotation type",
+    regionMode: "Regions",
+    pinMode: "Pins",
+    annotationModeLocked:
+      "Delete all annotations to switch between regions and pins.",
   },
   storySettings: {
     title: "Story Settings",
@@ -138,6 +143,7 @@ export const en = {
     hideCrosshairs: "Hide crosshairs",
     selectedAnnotation:
       "Selected annotation. Arrow keys move it; Shift and arrow keys resize it.",
+    selectedPin: "Selected pin. Arrow keys move it.",
   },
   viewers: {
     storiiies: "Storiiies",
@@ -207,7 +213,9 @@ export const en = {
     missingField: (field: string) => `Missing or invalid field: ${field}`,
     notPositive: (field: string) => `${field} must be a positive number`,
     coordinatesNegative: "Coordinates must be non-negative numbers",
-    sizeNotPositive: "Width and height must be positive numbers",
+    sizeNegative: "Width and height must be non-negative numbers",
+    annotationModeLocked:
+      "Delete all annotations before switching between regions and pins.",
     titleRequired: "Title is required",
     invalidImageUrl: "Invalid image URL",
     annotationNotFound: "Annotation not found",

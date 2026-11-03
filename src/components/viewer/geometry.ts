@@ -120,6 +120,10 @@ export const clampRect = (
 // Moves an annotation's rect, crosshairs and handles without a React render,
 // so drags and key nudges stay smooth until the save round-trips.
 export const drawRect = (group: Element, r: Rect) => {
+  for (const pin of group.querySelectorAll(".annotation-pin")) {
+    pin.setAttribute("cx", String(r.x));
+    pin.setAttribute("cy", String(r.y));
+  }
   for (const rect of group.querySelectorAll(
     ".annotation-rect, .annotation-underlay",
   )) {
@@ -152,6 +156,12 @@ export const drawRect = (group: Element, r: Rect) => {
 };
 
 export const readRect = (group: Element): Rect => {
+  const pin = group.querySelector(".annotation-pin");
+  if (pin) {
+    const num = (name: string) =>
+      Math.round(Number.parseFloat(pin.getAttribute(name) || "0"));
+    return { x: num("cx"), y: num("cy"), width: 0, height: 0 };
+  }
   const rect = group.querySelector(".annotation-rect");
   const num = (name: string) =>
     Math.round(Number.parseFloat(rect?.getAttribute(name) || "0"));

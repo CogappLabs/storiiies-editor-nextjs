@@ -10,10 +10,15 @@ import { Button, ConfirmDialog, Modal } from "./ui";
 
 interface StorySettingsModalProps {
   story: Story;
+  modeLocked: boolean;
   onClose: () => void;
 }
 
-const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
+const StorySettingsModal = ({
+  story,
+  modeLocked,
+  onClose,
+}: StorySettingsModalProps) => {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -74,7 +79,11 @@ const StorySettingsModal = ({ story, onClose }: StorySettingsModalProps) => {
             {error}
           </p>
         )}
-        <StoryFields story={story} titleRef={titleInputRef} />
+        <StoryFields
+          story={story}
+          titleRef={titleInputRef}
+          modeLocked={modeLocked}
+        />
         <div className="flex justify-between pt-4 border-t">
           <Button variant="danger" onClick={() => setConfirmingDelete(true)}>
             {strings.storySettings.deleteButton}

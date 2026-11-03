@@ -52,12 +52,25 @@ const Editor = ({ story }: Props) => {
   const strings = useStrings();
 
   const manifestUrl = useManifestUrl(story.id);
+  const pinMode = story.annotationMode === "pin";
 
   const handleAddAnnotation = () => {
     const bounds = viewerRef.current?.getViewportBounds();
-    if (bounds) {
-      setPendingData(bounds);
-    }
+    if (!bounds) return;
+    const { x, y, width, height } = bounds.viewport;
+    setPendingData(
+      pinMode
+        ? {
+            ...bounds,
+            rect: {
+              x: Math.round(x + width / 2),
+              y: Math.round(y + height / 2),
+              width: 0,
+              height: 0,
+            },
+          }
+        : bounds,
+    );
   };
 
   useEffect(() => {
@@ -136,6 +149,7 @@ const Editor = ({ story }: Props) => {
             imageWidth={story.imageSource.width}
             imageHeight={story.imageSource.height}
             annotations={story.annotations}
+            pinMode={pinMode}
             onAnnotationUpdate={handleAnnotationUpdate}
             onReadyChange={setViewerReady}
             onAnnotationSelect={setSelectedAnnotationId}
@@ -200,6 +214,7 @@ const Editor = ({ story }: Props) => {
       {showSettings && (
         <StorySettingsModal
           story={story}
+          modeLocked={story.annotations.length > 0}
           onClose={() => setShowSettings(false)}
         />
       )}
