@@ -66,6 +66,7 @@ model Annotation {
   viewportWidth  Float?
   viewportHeight Float?
   ordinal   Int
+  youtubeId String?
   createdAt DateTime @default(now())
 
   story  Story             @relation(fields: [storyId], references: [id], onDelete: Cascade)

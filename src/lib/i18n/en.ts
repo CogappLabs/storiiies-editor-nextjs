@@ -83,6 +83,7 @@ export const en = {
     deleteAria: "Delete annotation",
     deleteConfirm: "Delete this annotation?",
     imageAlt: "Annotation image",
+    youtubeLink: "YouTube video",
     dragHandle: "Drag to reorder annotation",
   },
   newAnnotationForm: {
@@ -96,6 +97,8 @@ export const en = {
     audioPlaceholder: "https://example.com/audio.mp3",
     addAudio: "Add audio",
     removeAudio: "Remove",
+    youtubeLabel: "YouTube video (optional)",
+    youtubePlaceholder: "https://www.youtube.com/watch?v=...",
     upload: "Upload",
     uploading: "Uploading...",
     uploadFailed: "Upload failed",
@@ -218,6 +221,7 @@ export const en = {
       "Delete all annotations before switching between regions and pins.",
     titleRequired: "Title is required",
     invalidImageUrl: "Invalid image URL",
+    invalidYoutubeUrl: "That isn't a YouTube video URL",
     annotationNotFound: "Annotation not found",
     annotationListStale:
       "Annotation list is out of date. Reload and try again.",

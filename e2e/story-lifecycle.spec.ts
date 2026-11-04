@@ -144,6 +144,31 @@ test("edit annotation text", async ({ page }) => {
   expect(JSON.stringify(bodies(items[1]))).toContain("Second note, edited");
 });
 
+test("add a YouTube video, exported as a Video body", async ({ page }) => {
+  await page.goto(`/editor/${storyId}`);
+  await page.getByRole("button", { name: "Edit annotation" }).nth(1).click();
+  const field = page.getByLabel("YouTube video (optional)");
+
+  await field.fill("https://example.com/watch?v=aqz-KE-bpKQ");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(
+    page
+      .getByRole("alert")
+      .filter({ hasText: "That isn't a YouTube video URL" }),
+  ).toBeVisible();
+
+  await field.fill("https://youtu.be/aqz-KE-bpKQ?t=30");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("link", { name: "YouTube video" })).toBeVisible();
+
+  const items = await annotations(page);
+  expect(bodies(items[1]).at(-1)).toEqual({
+    type: "Video",
+    id: "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ",
+    format: "text/html",
+  });
+});
+
 test("resize and move the selected box with the keyboard", async ({ page }) => {
   await page.goto(`/editor/${storyId}`);
   const [x, y, w, h] = xywh((await annotations(page))[0].target);

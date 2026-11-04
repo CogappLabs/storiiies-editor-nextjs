@@ -10,6 +10,7 @@ import {
 } from "@/lib/actions/annotations";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { AnnotationWithMedia } from "@/lib/types";
+import { youtubeWatchUrl } from "@/lib/youtube";
 import Icon from "../ui/Icon";
 import AnnotationForm, { type AnnotationFormValues } from "./AnnotationForm";
 
@@ -35,8 +36,13 @@ const AnnotationCard = ({
   const strings = useStrings().annotationList;
   const [isEditing, setIsEditing] = useState(false);
 
-  const save = async ({ text, imageUrls, audioUrls }: AnnotationFormValues) =>
-    (await updateAnnotation(annotation.id, storyId, { text })) ??
+  const save = async ({
+    text,
+    imageUrls,
+    audioUrls,
+    youtubeUrl,
+  }: AnnotationFormValues) =>
+    (await updateAnnotation(annotation.id, storyId, { text, youtubeUrl })) ??
     (await updateAnnotationImages(annotation.id, storyId, imageUrls)) ??
     (await updateAnnotationAudio(annotation.id, storyId, audioUrls));
 
@@ -60,6 +66,9 @@ const AnnotationCard = ({
               text: annotation.text,
               imageUrls: annotation.images.map((img) => img.imageUrl),
               audioUrls: annotation.audio.map((aud) => aud.audioUrl),
+              youtubeUrl: annotation.youtubeId
+                ? youtubeWatchUrl(annotation.youtubeId)
+                : "",
             }}
             onSubmit={save}
             onDone={() => setIsEditing(false)}
@@ -109,6 +118,16 @@ const AnnotationCard = ({
                 className="relative z-10 mt-2 w-full h-8"
               />
             ))}
+            {annotation.youtubeId && (
+              <a
+                href={youtubeWatchUrl(annotation.youtubeId)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative z-10 mt-2 inline-block text-sm underline"
+              >
+                {strings.youtubeLink}
+              </a>
+            )}
           </>
         )}
       </div>

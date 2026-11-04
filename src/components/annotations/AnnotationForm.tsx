@@ -11,6 +11,7 @@ export interface AnnotationFormValues {
   text: string;
   imageUrls: string[];
   audioUrls: string[];
+  youtubeUrl: string;
 }
 
 interface AnnotationFormProps {
@@ -24,7 +25,7 @@ const toFields = (urls: string[] = []) => urls.map(createMediaField);
 const toUrls = (fields: MediaField[]) =>
   fields.map((field) => field.value.trim()).filter(Boolean);
 
-/** Text, image and audio fields for creating or editing an annotation. */
+/** Text, image, audio and YouTube fields for creating or editing an annotation. */
 const AnnotationForm = ({
   initial,
   onSubmit,
@@ -33,9 +34,11 @@ const AnnotationForm = ({
 }: AnnotationFormProps) => {
   const strings = useStrings().newAnnotationForm;
   const textAreaId = useId();
+  const youtubeId = useId();
   const [text, setText] = useState(initial?.text ?? "");
   const [imageFields, setImageFields] = useState(toFields(initial?.imageUrls));
   const [audioFields, setAudioFields] = useState(toFields(initial?.audioUrls));
+  const [youtubeUrl, setYoutubeUrl] = useState(initial?.youtubeUrl ?? "");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   // Saving mid-upload would store the row without the file.
@@ -50,6 +53,7 @@ const AnnotationForm = ({
         text,
         imageUrls: toUrls(imageFields),
         audioUrls: toUrls(audioFields),
+        youtubeUrl,
       });
       if (res?.error) {
         setError(res.error);
@@ -88,6 +92,19 @@ const AnnotationForm = ({
         setFields={setAudioFields}
         onUploadingChange={trackUpload}
       />
+      <div>
+        <label htmlFor={youtubeId} className="block text-sm font-medium mb-2">
+          {strings.youtubeLabel}
+        </label>
+        <input
+          id={youtubeId}
+          type="url"
+          value={youtubeUrl}
+          onChange={(e) => setYoutubeUrl(e.target.value)}
+          className="w-full px-2 py-1 border border-cogapp-charcoal/20 rounded text-sm"
+          placeholder={strings.youtubePlaceholder}
+        />
+      </div>
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}

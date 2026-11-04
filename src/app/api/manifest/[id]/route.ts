@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getStrings } from "@/lib/i18n/strings";
 import { prisma } from "@/lib/prisma";
 import { storyWithMedia } from "@/lib/queries";
+import { youtubeEmbedUrl } from "@/lib/youtube";
 
 const escapeHtml = (s: string) =>
   s
@@ -131,9 +132,22 @@ export async function GET(
                       format: "audio/mpeg",
                     }));
 
+                    // StoriiiesViewer iframes text/html Video bodies whose
+                    // id matches its embedOrigins.
+                    const videoBodies = annotation.youtubeId
+                      ? [
+                          {
+                            type: "Video",
+                            id: youtubeEmbedUrl(annotation.youtubeId),
+                            format: "text/html",
+                          },
+                        ]
+                      : [];
+
+                    const mediaBodies = [...audioBodies, ...videoBodies];
                     const body =
-                      audioBodies.length > 0
-                        ? [textBody, ...audioBodies]
+                      mediaBodies.length > 0
+                        ? [textBody, ...mediaBodies]
                         : textBody;
 
                     return {

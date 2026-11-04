@@ -6,6 +6,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { deleteOrphanedMedia } from "@/lib/blob";
 import { getStrings } from "@/lib/i18n/strings";
 import { prisma } from "@/lib/prisma";
+import { parseYoutubeId } from "@/lib/youtube";
 import {
   type ActionResult,
   actionFailure,
@@ -32,6 +33,14 @@ const assertAnnotationInStory = async (
   }
 };
 
+/** Null for a blank field; throws on a URL that isn't a YouTube video. */
+const toYoutubeId = (url: string) => {
+  if (!url.trim()) return null;
+  const id = parseYoutubeId(url);
+  if (!id) throw new Error(errors.invalidYoutubeUrl);
+  return id;
+};
+
 // After the response, so a slow or failing Blob call never blocks a save.
 const cleanUpMedia = (urls: string[]) =>
   after(() =>
@@ -54,6 +63,7 @@ export const createAnnotation = async (
     viewportHeight?: number;
     imageUrls?: string[];
     audioUrls?: string[];
+    youtubeUrl?: string;
   },
 ): Promise<ActionResult> => {
   try {
@@ -64,7 +74,8 @@ export const createAnnotation = async (
       width: data.viewportWidth,
       height: data.viewportHeight,
     });
-    const { imageUrls, audioUrls, ...fields } = data;
+    const { imageUrls, audioUrls, youtubeUrl = "", ...fields } = data;
+    const youtubeId = toYoutubeId(youtubeUrl);
 
     await prisma.$transaction(async (tx) => {
       await lockStory(tx, storyId);
@@ -75,6 +86,7 @@ export const createAnnotation = async (
       await tx.annotation.create({
         data: {
           ...fields,
+          youtubeId,
           storyId,
           ordinal: (_max.ordinal ?? -1) + 1,
           images: {
@@ -108,13 +120,18 @@ export const updateAnnotation = async (
     y?: number;
     width?: number;
     height?: number;
+    youtubeUrl?: string;
   },
 ): Promise<ActionResult> => {
   try {
     validateCoordinates(data);
+    const { youtubeUrl, ...fields } = data;
     const { count } = await prisma.annotation.updateMany({
       where: { id, storyId },
-      data,
+      data: {
+        ...fields,
+        ...(youtubeUrl !== undefined && { youtubeId: toYoutubeId(youtubeUrl) }),
+      },
     });
     if (count === 0) {
       throw new Error(errors.annotationNotFound);
