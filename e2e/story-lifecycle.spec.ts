@@ -166,6 +166,13 @@ test("add a YouTube video, exported as a Video body", async ({ page }) => {
     type: "Video",
     id: "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ",
     format: "text/html",
+    service: [
+      {
+        id: "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ",
+        type: "Service",
+        profile: "https://developers.google.com/youtube/iframe_api_reference",
+      },
+    ],
   });
 });
 

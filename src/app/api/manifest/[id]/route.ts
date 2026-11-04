@@ -133,13 +133,26 @@ export async function GET(
                     }));
 
                     // StoriiiesViewer iframes text/html Video bodies whose
-                    // id matches its embedOrigins.
-                    const videoBodies = annotation.youtubeId
+                    // id matches its embedOrigins. The service profile is the
+                    // YouTube convention proposed in IIIF/iiif-av#27, so other
+                    // viewers can tell it's YouTube without parsing the URL.
+                    const embedUrl =
+                      annotation.youtubeId &&
+                      youtubeEmbedUrl(annotation.youtubeId);
+                    const videoBodies = embedUrl
                       ? [
                           {
                             type: "Video",
-                            id: youtubeEmbedUrl(annotation.youtubeId),
+                            id: embedUrl,
                             format: "text/html",
+                            service: [
+                              {
+                                id: embedUrl,
+                                type: "Service",
+                                profile:
+                                  "https://developers.google.com/youtube/iframe_api_reference",
+                              },
+                            ],
                           },
                         ]
                       : [];
