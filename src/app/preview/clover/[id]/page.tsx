@@ -1,5 +1,6 @@
 "use client";
 
+import "@nulib/clover/styles.css";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import PreviewShell from "@/components/PreviewShell";
@@ -15,10 +16,21 @@ const ViewerLoading = () => {
   );
 };
 
-const Viewer = dynamic(() => import("@samvera/clover-iiif/viewer"), {
-  ssr: false,
-  loading: ViewerLoading,
-});
+const CloverStory = dynamic(
+  async () => {
+    const { Root, Body, Annotations } = await import("@nulib/clover");
+    return ({ manifestUrl }: { manifestUrl: string }) => (
+      <Root
+        iiifContent={manifestUrl}
+        className="flex-1 flex flex-col md:flex-row min-h-0"
+      >
+        <Body className="flex-1 min-h-[50vh] [--clover-body-height:auto]" />
+        <Annotations className="md:w-96 overflow-y-auto p-4" />
+      </Root>
+    );
+  },
+  { ssr: false, loading: ViewerLoading },
+);
 
 const CloverPreview = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,9 +38,7 @@ const CloverPreview = () => {
 
   return (
     <PreviewShell storyId={id} viewer="clover">
-      <div className="flex-1">
-        {manifestUrl && <Viewer iiifContent={manifestUrl} />}
-      </div>
+      {manifestUrl && <CloverStory manifestUrl={manifestUrl} />}
     </PreviewShell>
   );
 };
