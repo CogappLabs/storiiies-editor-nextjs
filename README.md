@@ -6,9 +6,10 @@ An editor for IIIF annotation stories. Pick a high-resolution image, mark up reg
 
 - Create stories from a IIIF image `info.json`, a IIIF manifest (pick a canvas), or an uploaded image (tiled into IIIF with sharp)
 - Add an annotation for the current view, then move or resize its box with the mouse or the keyboard
-- Attach images and audio to annotations by URL or by upload; uploaded images are resized to WebP
+- Attach images, audio and a YouTube video to annotations; images and audio by URL or by upload, with uploaded images resized to WebP
 - Reorder annotations by drag and drop
-- Preview in the Storiiies Viewer, Clover, Mirador and Annona
+- Preview in the Storiiies Viewer, Clover, Mirador and Annona, with a per-story corner for the Storiiies text panel
+- Edit stories from scripts through a [JSON API](#api)
 - Admin pages for all stories (with restore) and all uploads
 
 ## Tech stack
@@ -39,6 +40,7 @@ Requires Node.js 24 and npm.
    | `POSTGRES_URL_NON_POOLING`               | Direct connection used by the Prisma CLI |
    | `BLOB_READ_WRITE_TOKEN`                  | Vercel Blob, for uploads                 |
    | `BASIC_AUTH_USER`, `BASIC_AUTH_PASSWORD` | Optional; turns on basic auth            |
+   | `EDITOR_API_KEY`                         | Optional; turns on the API               |
 
 3. Push the schema and start the dev server:
 
