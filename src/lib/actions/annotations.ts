@@ -41,6 +41,27 @@ const toYoutubeId = (url: string) => {
   return id;
 };
 
+// Viewers play Sound bodies in an <audio> element, so a page link (SoundCloud,
+// Dropbox preview) saves fine but never plays.
+const toAudioUrls = async (urls: string[] = []) => {
+  const valid = httpUrls(urls);
+  await Promise.all(
+    valid.map(async (url) => {
+      const res = await fetch(url, { signal: AbortSignal.timeout(10_000) })
+        .then(async (r) => {
+          await r.body?.cancel();
+          return r;
+        })
+        .catch(() => null);
+      const type = res?.headers.get("content-type") ?? "";
+      if (!res?.ok || !type.startsWith("audio/")) {
+        throw new Error(errors.notAudioUrl(url));
+      }
+    }),
+  );
+  return valid;
+};
+
 // After the response, so a slow or failing Blob call never blocks a save.
 const cleanUpMedia = (urls: string[]) =>
   after(() =>
@@ -76,6 +97,7 @@ export const createAnnotation = async (
     });
     const { imageUrls, audioUrls, youtubeUrl = "", ...fields } = data;
     const youtubeId = toYoutubeId(youtubeUrl);
+    const audio = await toAudioUrls(audioUrls);
 
     await prisma.$transaction(async (tx) => {
       await lockStory(tx, storyId);
@@ -96,7 +118,7 @@ export const createAnnotation = async (
             })),
           },
           audio: {
-            create: httpUrls(audioUrls).map((audioUrl, ordinal) => ({
+            create: audio.map((audioUrl, ordinal) => ({
               audioUrl,
               ordinal,
             })),
@@ -231,6 +253,7 @@ export const updateAnnotationAudio = async (
 ): Promise<ActionResult> => {
   try {
     await assertAnnotationInStory(annotationId, storyId);
+    const audio = await toAudioUrls(audioUrls);
     const previous = await prisma.annotationAudio.findMany({
       where: { annotationId },
       select: { audioUrl: true },
@@ -238,7 +261,7 @@ export const updateAnnotationAudio = async (
     await prisma.$transaction([
       prisma.annotationAudio.deleteMany({ where: { annotationId } }),
       prisma.annotationAudio.createMany({
-        data: httpUrls(audioUrls).map((audioUrl, ordinal) => ({
+        data: audio.map((audioUrl, ordinal) => ({
           annotationId,
           audioUrl,
           ordinal,

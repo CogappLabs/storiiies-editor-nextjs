@@ -222,6 +222,8 @@ export const en = {
     titleRequired: "Title is required",
     invalidImageUrl: "Invalid image URL",
     invalidYoutubeUrl: "That isn't a YouTube video URL",
+    notAudioUrl: (url: string) =>
+      `${url} isn't an audio file. Link to the file itself (for example an MP3) or upload it.`,
     annotationNotFound: "Annotation not found",
     annotationListStale:
       "Annotation list is out of date. Reload and try again.",
