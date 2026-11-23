@@ -2,6 +2,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { listAll } from "@/lib/blob";
 import { isInfoResponse, thumbnailUrl } from "@/lib/iiif-manifest";
 import { prisma } from "@/lib/prisma";
+import { toInfoPosition } from "@/lib/viewers";
 
 // Reads for server components. Kept out of the "use server" action modules,
 // which would expose them as publicly callable endpoints.
@@ -40,6 +41,15 @@ export const getStory = (id: string) =>
     where: { id, deletedAt: null },
     include: storyWithMedia,
   });
+
+// Public: preview pages call this without auth, so it selects one field.
+export const getInfoPosition = async (id: string) => {
+  const story = await prisma.story.findUnique({
+    where: { id },
+    select: { infoPosition: true },
+  });
+  return toInfoPosition(story?.infoPosition) ?? "top-left";
+};
 
 export const isStoryDeleted = async (id: string) => {
   const story = await prisma.story.findUnique({

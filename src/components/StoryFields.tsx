@@ -3,11 +3,17 @@
 import { type Ref, useId } from "react";
 import type { Story } from "@/generated/prisma/client";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
+import { INFO_POSITIONS } from "@/lib/viewers";
 
 interface StoryFieldsProps {
   story?: Pick<
     Story,
-    "title" | "author" | "description" | "attribution" | "annotationMode"
+    | "title"
+    | "author"
+    | "description"
+    | "attribution"
+    | "annotationMode"
+    | "infoPosition"
   >;
   titleRef?: Ref<HTMLInputElement>;
   modeLocked?: boolean;
@@ -106,6 +112,33 @@ const StoryFields = ({ story, titleRef, modeLocked }: StoryFieldsProps) => {
           </p>
         )}
       </fieldset>
+      <div>
+        <label
+          htmlFor={field("infoPosition")}
+          className="block text-sm font-medium mb-1"
+        >
+          {strings.infoPosition}
+        </label>
+        <select
+          id={field("infoPosition")}
+          name="infoPosition"
+          defaultValue={story?.infoPosition ?? "top-left"}
+          aria-describedby={field("infoPositionHint")}
+          className={inputClass}
+        >
+          {INFO_POSITIONS.map((position) => (
+            <option key={position} value={position}>
+              {strings.infoPositions[position]}
+            </option>
+          ))}
+        </select>
+        <p
+          id={field("infoPositionHint")}
+          className="text-xs text-cogapp-gray mt-1"
+        >
+          {strings.infoPositionHint}
+        </p>
+      </div>
     </div>
   );
 };

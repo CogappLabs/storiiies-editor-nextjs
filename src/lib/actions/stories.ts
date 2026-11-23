@@ -9,6 +9,7 @@ import type {
 import { getStrings } from "@/lib/i18n/strings";
 import { prisma } from "@/lib/prisma";
 import { isValidHttpUrl } from "@/lib/validation";
+import { toInfoPosition } from "@/lib/viewers";
 import {
   type ActionResult,
   actionFailure,
@@ -36,6 +37,7 @@ const storyFields = (formData: FormData) => {
     annotationMode: ANNOTATION_MODES.find(
       (m) => m === formData.get("annotationMode"),
     ),
+    infoPosition: toInfoPosition(formData.get("infoPosition")),
   };
 };
 

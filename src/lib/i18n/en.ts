@@ -125,6 +125,15 @@ export const en = {
     pinMode: "Pins",
     annotationModeLocked:
       "Delete all annotations to switch between regions and pins.",
+    infoPosition: "Storiiies text panel position",
+    infoPositionHint:
+      "Pick the corner that keeps the panel off the subject. Small screens always show it below the image.",
+    infoPositions: {
+      "top-left": "Top left",
+      "top-right": "Top right",
+      "bottom-left": "Bottom left",
+      "bottom-right": "Bottom right",
+    },
   },
   storySettings: {
     title: "Story Settings",

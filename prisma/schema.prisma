@@ -42,6 +42,8 @@ model Story {
   description   String?
   attribution   String?
   annotationMode AnnotationMode @default(region)
+  // Corner of the Storiiies viewer's info panel; one of INFO_POSITIONS
+  infoPosition  String    @default("top-left")
   imageSourceId String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

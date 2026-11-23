@@ -225,6 +225,27 @@ test("delete an annotation", async ({ page }) => {
   await expect.poll(async () => (await annotations(page)).length).toBe(1);
 });
 
+test("move the Storiiies text panel to another corner", async ({ page }) => {
+  await page.goto(`/editor/${storyId}`);
+  await page.getByRole("button", { name: "Settings" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog
+    .getByLabel("Storiiies text panel position")
+    .selectOption("bottom-right");
+  await dialog.getByRole("button", { name: /Save Changes/ }).click();
+  await expect(dialog).toBeHidden();
+
+  await page.goto(`/preview/storiiies/${storyId}`);
+  const container = page.locator("#storiiies-viewer");
+  const panel = page.locator(".storiiies-viewer__info-area");
+  await expect(panel).toBeVisible();
+  const outer = await container.boundingBox();
+  const inner = await panel.boundingBox();
+  if (!outer || !inner) throw new Error("Viewer not laid out");
+  expect(outer.x + outer.width - (inner.x + inner.width)).toBeLessThan(40);
+  expect(outer.y + outer.height - (inner.y + inner.height)).toBeLessThan(40);
+});
+
 test("rename and delete the story", async ({ page }) => {
   await page.goto(`/editor/${storyId}`);
   await page.getByRole("button", { name: "Settings" }).click();
