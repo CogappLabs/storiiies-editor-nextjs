@@ -25,7 +25,6 @@ const toFields = (urls: string[] = []) => urls.map(createMediaField);
 const toUrls = (fields: MediaField[]) =>
   fields.map((field) => field.value.trim()).filter(Boolean);
 
-/** Text, image, audio and YouTube fields for creating or editing an annotation. */
 const AnnotationForm = ({
   initial,
   onSubmit,

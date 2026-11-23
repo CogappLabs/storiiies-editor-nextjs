@@ -139,8 +139,8 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
       onReadyChange?.(isReady);
     }, [isReady, onReadyChange]);
 
-    // Get handle radius in image coordinates for consistent ~6px screen size.
-    // Pins are drawn at PIN_SCALE times this.
+    // In image coordinates, so handles stay 6 screen pixels across at any
+    // zoom. Pins are drawn at PIN_SCALE times this.
     const getHandleRadius = useCallback(() => {
       const viewer = getViewer();
       if (!viewer) return 60;
@@ -149,7 +149,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
       return 6 / scale;
     }, [getViewer]);
 
-    // OpenSeadragon plus an SVG overlay for the annotation boxes.
     useEffect(() => {
       if (!containerRef.current) return;
 
@@ -189,7 +188,7 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
         svg.appendChild(g);
         groupRef.current = g;
 
-        // Sync transform during pan/zoom. Throttle to one DOM update per frame.
+        // Throttled to one DOM update per frame.
         let lastTransform = "";
         const syncTransform = () => {
           if (isDisposed) return;
@@ -221,7 +220,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
         }
       });
 
-      // Deselect when clicking empty canvas area
       viewer.addHandler("canvas-click", (event: OpenSeadragon.ViewerEvent) => {
         const e = event as unknown as { quick?: boolean };
         if (e.quick) {
@@ -563,7 +561,6 @@ const AnnotatedViewer = forwardRef<AnnotatedViewerHandle, Props>(
       };
     }, [imageWidth, imageHeight, getViewer]);
 
-    // Update resize handle sizes after zoom settles
     useEffect(() => {
       const viewer = getViewer();
       if (!viewer || !isReady) return;

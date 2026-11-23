@@ -27,7 +27,6 @@ export async function POST(request: Request) {
     if (!isValidHttpUrl(infoJsonUrl)) {
       throw new BadRequest(errors.invalidImageUrl);
     }
-    // The web form reads the size in the browser; here the server does.
     const info = await fetch(infoJsonUrl, {
       signal: AbortSignal.timeout(10_000),
     })

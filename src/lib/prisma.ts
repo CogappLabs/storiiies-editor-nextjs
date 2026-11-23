@@ -8,8 +8,8 @@ const globalForPrisma = globalThis as unknown as {
 const connectionString =
   process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL;
 
-// pg warns that sslmode=require will change meaning; verify-full is what it
-// means today. Other modes (e.g. disable for local Postgres) are left alone.
+// pg warns that sslmode=require will change meaning; verify-full is its
+// current meaning. Other modes (e.g. disable for local Postgres) are left alone.
 const url = connectionString ? new URL(connectionString) : undefined;
 if (url?.searchParams.get("sslmode") === "require") {
   url.searchParams.set("sslmode", "verify-full");

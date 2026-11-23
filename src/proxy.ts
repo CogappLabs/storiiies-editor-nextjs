@@ -39,7 +39,6 @@ export function proxy(req: NextRequest) {
   const validUser = process.env.BASIC_AUTH_USER;
   const validPass = process.env.BASIC_AUTH_PASSWORD;
 
-  // If user or password not set, then we don't check for basic auth.
   if (!validUser || !validPass) {
     return NextResponse.next();
   }
