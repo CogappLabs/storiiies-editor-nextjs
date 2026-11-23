@@ -62,6 +62,7 @@ src/
       manifest/[id]/      # IIIF manifest generation endpoint (public)
       images/             # IIIF image upload and delete (tiled with sharp)
       media/              # Blob upload tokens and resizing for annotation media
+      v1/                 # Editing API (bearer key), wraps the server actions
     editor/[id]/          # Story editor page
     preview/              # Viewer previews (storiiies, clover, mirador, annona)
     admin/                # Admin pages (all stories, uploaded images)
@@ -95,7 +96,8 @@ prisma.config.ts          # Prisma config (loads .env.local)
 ## Key Patterns
 
 - **Server actions** (`src/lib/actions/`): All database mutations go through server actions, split by domain. Reads live in `src/lib/queries.ts`, outside `"use server"`, so they are not exposed as callable endpoints. They validate inputs and call `revalidatePath()` after writes. Mutations return `{ error }` instead of throwing, because Next hides thrown messages in production; callers must check the result.
-- **Auth**: `src/proxy.ts` applies basic auth to everything except `/api/manifest` (external viewers load it) and `/preview/*` plus `/mirador.html` (shareable previews). Preview pages must stay read-only: they read the public manifest, plus the story's `infoPosition` for the Storiiies preview.
+- **Auth**: `src/proxy.ts` applies basic auth to everything except `/api/manifest` (external viewers load it), `/preview/*` plus `/mirador.html` (shareable previews), and `/api/v1/*`, which needs `Authorization: Bearer $EDITOR_API_KEY` and is closed when the key is unset.
+- **Editing API** (`src/app/api/v1/`, documented in the README): route handlers that call the same server actions as the UI, with `src/lib/api.ts` mapping `{ error }` to status codes. `insertStory` and `insertAnnotation` throw and return the new id; the `create*` actions wrap them for the UI. Preview pages must stay read-only: they read the public manifest, plus the story's `infoPosition` for the Storiiies preview.
 - **Turbopack HMR workaround**: OpenSeadragon instances are stored in a `WeakMap` outside React state (`viewer/AnnotatedViewer.tsx`) to prevent Turbopack from trying to serialize them. Preview pages must not store viewer instances in React refs/state for the same reason.
 - **IIIF manifests**: Generated dynamically at `/api/manifest/[id]`. Annotations become IIIF annotations with `TextualBody` and `Sound` bodies. Annotation images are embedded as `<img>` in a `text/html` TextualBody, because StoriiiesViewer ignores separate `Image` bodies. A YouTube video is stored as `Annotation.youtubeId` and exported as a `Video` body with a youtube-nocookie embed URL and `format: "text/html"` plus a YouTube iframe API `service` profile (the pattern from IIIF/iiif-av#27), which StoriiiesViewer loads in an iframe (its `embedOrigins` default allows that prefix).
 - **Pin mode**: `Story.annotationMode` is `region` or `pin`, fixed once the story has annotations. Pins are zero-size annotations exported as `PointSelector` targets, with `source` typed as a Canvas because Clover crashes on a bare id. Clover and Mirador don't render pin text or markers; Storiiies does.

@@ -1,4 +1,6 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { type NextRequest, NextResponse } from "next/server";
+import { getStrings } from "@/lib/i18n/strings";
 
 export const config = {
   matcher: [
@@ -8,7 +10,32 @@ export const config = {
   ],
 };
 
+const sha256 = (value: string) => createHash("sha256").update(value).digest();
+
+// Hashing first gives timingSafeEqual equal-length inputs.
+const hasApiKey = (req: NextRequest) => {
+  const key = process.env.EDITOR_API_KEY;
+  const [scheme, token] = req.headers.get("authorization")?.split(" ") ?? [];
+  return Boolean(
+    key &&
+      scheme === "Bearer" &&
+      token &&
+      timingSafeEqual(sha256(token), sha256(key)),
+  );
+};
+
 export function proxy(req: NextRequest) {
+  // The API takes its own key instead of basic auth, and stays closed when no
+  // key is configured.
+  if (/^\/api\/v1(\/|$)/.test(req.nextUrl.pathname)) {
+    return hasApiKey(req)
+      ? NextResponse.next()
+      : NextResponse.json(
+          { error: getStrings().errors.apiUnauthorized },
+          { status: 401 },
+        );
+  }
+
   const validUser = process.env.BASIC_AUTH_USER;
   const validPass = process.env.BASIC_AUTH_PASSWORD;
 

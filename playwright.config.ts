@@ -23,6 +23,8 @@ const local = (() => {
 export const blobToken =
   process.env.BLOB_READ_WRITE_TOKEN ?? local.BLOB_READ_WRITE_TOKEN ?? "";
 
+export const apiKey = "e2e-api-key";
+
 const PORT = 3100;
 
 export default defineConfig({
@@ -62,6 +64,7 @@ export default defineConfig({
         // Empty values beat .env.local and switch basic auth off.
         BASIC_AUTH_USER: "",
         BASIC_AUTH_PASSWORD: "",
+        EDITOR_API_KEY: apiKey,
       },
     },
   ],

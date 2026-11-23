@@ -70,64 +70,75 @@ const cleanUpMedia = (urls: string[]) =>
     ),
   );
 
+type NewAnnotation = {
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  viewportX?: number;
+  viewportY?: number;
+  viewportWidth?: number;
+  viewportHeight?: number;
+  imageUrls?: string[];
+  audioUrls?: string[];
+  youtubeUrl?: string;
+};
+
+/** Throws on invalid input; createAnnotation and the API report it differently. */
+export const insertAnnotation = async (
+  storyId: string,
+  data: NewAnnotation,
+) => {
+  validateCoordinates(data);
+  validateCoordinates({
+    x: data.viewportX,
+    y: data.viewportY,
+    width: data.viewportWidth,
+    height: data.viewportHeight,
+  });
+  const { imageUrls, audioUrls, youtubeUrl = "", ...fields } = data;
+  const youtubeId = toYoutubeId(youtubeUrl);
+  const audio = await toAudioUrls(audioUrls);
+
+  const annotation = await prisma.$transaction(async (tx) => {
+    await lockStory(tx, storyId);
+    const { _max } = await tx.annotation.aggregate({
+      where: { storyId },
+      _max: { ordinal: true },
+    });
+    return tx.annotation.create({
+      data: {
+        ...fields,
+        youtubeId,
+        storyId,
+        ordinal: (_max.ordinal ?? -1) + 1,
+        images: {
+          create: httpUrls(imageUrls).map((imageUrl, ordinal) => ({
+            imageUrl,
+            ordinal,
+          })),
+        },
+        audio: {
+          create: audio.map((audioUrl, ordinal) => ({
+            audioUrl,
+            ordinal,
+          })),
+        },
+      },
+    });
+  });
+
+  revalidatePath(`/editor/${storyId}`);
+  return annotation.id;
+};
+
 export const createAnnotation = async (
   storyId: string,
-  data: {
-    text: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    viewportX?: number;
-    viewportY?: number;
-    viewportWidth?: number;
-    viewportHeight?: number;
-    imageUrls?: string[];
-    audioUrls?: string[];
-    youtubeUrl?: string;
-  },
+  data: NewAnnotation,
 ): Promise<ActionResult> => {
   try {
-    validateCoordinates(data);
-    validateCoordinates({
-      x: data.viewportX,
-      y: data.viewportY,
-      width: data.viewportWidth,
-      height: data.viewportHeight,
-    });
-    const { imageUrls, audioUrls, youtubeUrl = "", ...fields } = data;
-    const youtubeId = toYoutubeId(youtubeUrl);
-    const audio = await toAudioUrls(audioUrls);
-
-    await prisma.$transaction(async (tx) => {
-      await lockStory(tx, storyId);
-      const { _max } = await tx.annotation.aggregate({
-        where: { storyId },
-        _max: { ordinal: true },
-      });
-      await tx.annotation.create({
-        data: {
-          ...fields,
-          youtubeId,
-          storyId,
-          ordinal: (_max.ordinal ?? -1) + 1,
-          images: {
-            create: httpUrls(imageUrls).map((imageUrl, ordinal) => ({
-              imageUrl,
-              ordinal,
-            })),
-          },
-          audio: {
-            create: audio.map((audioUrl, ordinal) => ({
-              audioUrl,
-              ordinal,
-            })),
-          },
-        },
-      });
-    });
-
-    revalidatePath(`/editor/${storyId}`);
+    await insertAnnotation(storyId, data);
   } catch (error) {
     return actionFailure("create annotation", error);
   }

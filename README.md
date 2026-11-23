@@ -60,6 +60,31 @@ The project uses `prisma db push` rather than migrations.
 5. **Reorder**: drag annotations in the list, or use the drag handle with the keyboard.
 6. **Preview and share**: open the story in any of the four viewers, or copy its manifest URL.
 
+## API
+
+`/api/v1` edits stories without the UI. Every request needs `Authorization: Bearer $EDITOR_API_KEY`; with no key set the API is closed. Bodies are JSON, and errors come back as `{ "error": "..." }` with a 4xx or 5xx status.
+
+| Request | Body |
+| --- | --- |
+| `GET /api/v1/stories` | |
+| `POST /api/v1/stories` | `title`, `infoJsonUrl`, optional `author`, `description`, `attribution`, `annotationMode` (`region` or `pin`), `infoPosition` |
+| `GET /api/v1/stories/:id` | |
+| `PATCH /api/v1/stories/:id` | any of the story fields; `null` clears an optional one |
+| `DELETE /api/v1/stories/:id` | soft delete, restorable from the admin page |
+| `POST /api/v1/stories/:id/annotations` | `text`, `x`, `y`, `width`, `height` (image pixels; 0 by 0 for a pin), optional `imageUrls`, `audioUrls`, `youtubeUrl` |
+| `PATCH /api/v1/stories/:id/annotations/:annotationId` | any of those; `imageUrls` and `audioUrls` replace the lists |
+| `DELETE /api/v1/stories/:id/annotations/:annotationId` | |
+| `PUT /api/v1/stories/:id/order` | `annotationIds`, every annotation in the new order |
+
+```bash
+curl -X POST "$HOST/api/v1/stories" \
+  -H "Authorization: Bearer $EDITOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Dog", "infoJsonUrl": "https://example.org/iiif/dog/info.json"}'
+```
+
+Media is attached by URL; files can only be uploaded through the editor. Audio URLs must serve an `audio/*` file. A PATCH that changes fields and media saves each part in turn, so a failure in a later part leaves the earlier ones saved.
+
 ## Scripts
 
 | Command             | What it does                                                            |
@@ -76,7 +101,7 @@ The e2e suite never touches the shared database. The upload test uses real Blob 
 
 The app runs on Vercel with a Neon database from the Vercel Marketplace, which fills in the Postgres variables. Add a Blob store for `BLOB_READ_WRITE_TOKEN`. Apply schema changes with `npx prisma db push` against the production database; the build does not change the schema.
 
-With basic auth set, every route needs a login except `/api/manifest/*` and the `/preview/*` pages, so manifests and previews can be shared.
+With basic auth set, every route needs a login except `/api/manifest/*` and the `/preview/*` pages, so manifests and previews can be shared, and `/api/v1/*`, which takes `EDITOR_API_KEY` instead.
 
 GitHub Actions runs lint, types and the e2e suite (against a Postgres service container) on every push and pull request.
 

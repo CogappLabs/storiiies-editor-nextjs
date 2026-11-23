@@ -41,35 +41,40 @@ const storyFields = (formData: FormData) => {
   };
 };
 
+/** Throws on invalid input; createStory and the API report it differently. */
+export const insertStory = async (formData: FormData) => {
+  const fields = storyFields(formData);
+  const infoJsonUrl = getString(formData, "imageUrl");
+  if (!isValidHttpUrl(infoJsonUrl)) {
+    throw new Error(errors.invalidImageUrl);
+  }
+  const sourceType =
+    SOURCE_TYPES.find((t) => t === formData.get("sourceType")) ?? "url";
+
+  const imageSource = await prisma.imageSource.upsert({
+    where: { infoJsonUrl },
+    update: {},
+    create: {
+      infoJsonUrl,
+      width: getPositiveInt(formData, "imageWidth"),
+      height: getPositiveInt(formData, "imageHeight"),
+      sourceType,
+      manifestUrl: getOptionalString(formData, "manifestUrl"),
+    },
+  });
+
+  const story = await prisma.story.create({
+    data: { ...fields, imageSourceId: imageSource.id },
+  });
+  revalidatePath("/");
+  return story.id;
+};
+
 export const createStory = async (
   formData: FormData,
 ): Promise<ActionResult> => {
   try {
-    const fields = storyFields(formData);
-    const infoJsonUrl = getString(formData, "imageUrl");
-    if (!isValidHttpUrl(infoJsonUrl)) {
-      throw new Error(errors.invalidImageUrl);
-    }
-    const sourceType =
-      SOURCE_TYPES.find((t) => t === formData.get("sourceType")) ?? "url";
-
-    const imageSource = await prisma.imageSource.upsert({
-      where: { infoJsonUrl },
-      update: {},
-      create: {
-        infoJsonUrl,
-        width: getPositiveInt(formData, "imageWidth"),
-        height: getPositiveInt(formData, "imageHeight"),
-        sourceType,
-        manifestUrl: getOptionalString(formData, "manifestUrl"),
-      },
-    });
-
-    const story = await prisma.story.create({
-      data: { ...fields, imageSourceId: imageSource.id },
-    });
-
-    redirect(`/editor/${story.id}`);
+    redirect(`/editor/${await insertStory(formData)}`);
   } catch (error) {
     return actionFailure("create story", error);
   }

@@ -244,6 +244,10 @@ export const en = {
       `Cannot delete image: it is used by ${count === 1 ? "story" : "stories"} ${titles}`,
     deleteImageFailed: "Failed to delete image",
     storyNotFound: "Story not found",
+    apiUnauthorized: "Missing or invalid API key",
+    invalidJson: "Request body must be a JSON object",
+    invalidField: (field: string) => `Missing or invalid field: ${field}`,
+    notIiifImage: "That URL isn't a IIIF image info.json",
     storyDeleted: "This story has been deleted and is no longer available",
     fetchUploadFailed: (status: number) =>
       `Could not fetch the uploaded image (${status})`,

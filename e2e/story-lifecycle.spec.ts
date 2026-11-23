@@ -2,12 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 import { del, head, list } from "@vercel/blob";
 import sharp from "sharp";
 import { blobToken } from "../playwright.config";
-
-// A Cogapp-hosted IIIF image, so the spec does not depend on a third party.
-const INFO_JSON =
-  "https://storiiies-images.cogapp.com/iiif/2/1793637773002AP198108sRGBWeb.ptif/info.json";
-const IMAGE_URL =
-  "https://storiiies-images.cogapp.com/iiif/2/1793637773002AP198108sRGBWeb.ptif/full/200,/0/default.jpg";
+import { IMAGE_URL, INFO_JSON } from "./fixtures";
 
 type Manifest = {
   label: { en: string[] };
