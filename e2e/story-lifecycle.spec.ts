@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { del } from "@vercel/blob";
+import { del, head, list } from "@vercel/blob";
 import sharp from "sharp";
 import { blobToken } from "../playwright.config";
 
@@ -275,4 +275,46 @@ test("pin mode stories export PointSelector targets", async ({ page }) => {
 
   await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByRole("dialog").getByLabel("Regions")).toBeDisabled();
+});
+
+test("upload a story image, which is tiled from Blob", async ({ page }) => {
+  test.skip(
+    !blobToken,
+    "Needs BLOB_READ_WRITE_TOKEN; uploads go to real Blob storage",
+  );
+  await page.goto("/");
+  await page.getByRole("button", { name: "Upload Image" }).click();
+
+  const png = await sharp({
+    create: { width: 1200, height: 800, channels: 3, background: "#227bff" },
+  })
+    .png()
+    .toBuffer();
+  const tileRequest = page.waitForRequest("**/api/images");
+  const tileResponse = page.waitForResponse("**/api/images");
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "e2e-story.png",
+    mimeType: "image/png",
+    buffer: png,
+  });
+
+  const { url } = (await tileRequest).postDataJSON() as { url: string };
+  const { id, infoJson } = (await (await tileResponse).json()) as {
+    id: string;
+    infoJson: string;
+  };
+  try {
+    await expect(page.getByText("Valid IIIF image: 1200 × 800")).toBeVisible();
+    const info = await page.request.get(infoJson);
+    expect((await info.json()).width).toBe(1200);
+    await expect(head(url, { token: blobToken })).rejects.toThrow();
+  } finally {
+    const { blobs } = await list({ prefix: `iiif/${id}/`, token: blobToken });
+    if (blobs.length > 0) {
+      await del(
+        blobs.map((b) => b.url),
+        { token: blobToken },
+      );
+    }
+  }
 });

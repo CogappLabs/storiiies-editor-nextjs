@@ -1,5 +1,6 @@
 "use client";
 
+import { upload } from "@vercel/blob/client";
 import Image from "next/image";
 import { useState } from "react";
 import { createStory } from "@/lib/actions/stories";
@@ -21,6 +22,8 @@ import StoryFields from "./StoryFields";
 import { Button, panelClass } from "./ui";
 
 type SourceMode = "url" | "upload";
+
+const MULTIPART_THRESHOLD_BYTES = 5 * 1024 * 1024;
 type ImageSourceType = "url" | "manifest" | "upload";
 
 const CreateStoryForm = () => {
@@ -167,21 +170,24 @@ const CreateStoryForm = () => {
     setError(null);
     resetImageState();
 
-    const formData = new FormData();
-    formData.append("image", file);
-
     try {
-      const response = await fetch("/api/images", {
-        method: "POST",
-        body: formData,
+      const blob = await upload(`originals/${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/media",
+        multipart: file.size > MULTIPART_THRESHOLD_BYTES,
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || strings.createStoryForm.uploadError);
+      const response = await fetch("/api/images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: blob.url, name: file.name }),
+      });
+      // A platform error page (timeout, crash) is HTML, not JSON.
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data) {
+        throw new Error(data?.error || strings.createStoryForm.uploadError);
       }
 
-      const data = await response.json();
       setInfoUrl(data.infoJson);
       setIiifInfo({ width: data.width, height: data.height });
       setPreview(URL.createObjectURL(file));
