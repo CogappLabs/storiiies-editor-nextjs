@@ -38,6 +38,7 @@ const storyFields = (formData: FormData) => {
       (m) => m === formData.get("annotationMode"),
     ),
     infoPosition: toInfoPosition(formData.get("infoPosition")),
+    regionMarkers: formData.get("regionMarkers") === "on",
   };
 };
 

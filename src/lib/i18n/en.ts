@@ -134,6 +134,9 @@ export const en = {
       "bottom-left": "Bottom left",
       "bottom-right": "Bottom right",
     },
+    regionMarkers: "Show Storiiies region markers",
+    regionMarkersHint:
+      "Puts a circle on each region that opens its annotation. Hidden while the text panel is hidden.",
   },
   storySettings: {
     title: "Story Settings",

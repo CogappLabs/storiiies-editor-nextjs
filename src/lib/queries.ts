@@ -42,13 +42,17 @@ export const getStory = (id: string) =>
     include: storyWithMedia,
   });
 
-// Public: preview pages call this without auth, so it selects one field.
-export const getInfoPosition = async (id: string) => {
+// Public: the Storiiies preview calls this without auth, so it selects only
+// the viewer settings.
+export const getStoriiiesOptions = async (id: string) => {
   const story = await prisma.story.findUnique({
     where: { id },
-    select: { infoPosition: true },
+    select: { infoPosition: true, regionMarkers: true },
   });
-  return toInfoPosition(story?.infoPosition) ?? "top-left";
+  return {
+    infoPosition: toInfoPosition(story?.infoPosition) ?? "top-left",
+    regionMarkers: story?.regionMarkers ?? false,
+  };
 };
 
 export const isStoryDeleted = async (id: string) => {

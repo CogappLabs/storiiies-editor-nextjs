@@ -42,6 +42,13 @@ export const optionalNumber = (body: Body, key: string) => {
   return value;
 };
 
+export const optionalBoolean = (body: Body, key: string) => {
+  const value = body[key];
+  if (value === undefined) return undefined;
+  if (typeof value !== "boolean") throw invalid(key);
+  return value;
+};
+
 export const requiredNumber = (body: Body, key: string) => {
   const value = optionalNumber(body, key);
   if (value === undefined) throw invalid(key);

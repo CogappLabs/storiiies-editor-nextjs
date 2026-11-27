@@ -3,6 +3,7 @@ import { insertStory } from "@/lib/actions/stories";
 import {
   BadRequest,
   handle,
+  optionalBoolean,
   optionalString,
   readBody,
   requiredString,
@@ -47,6 +48,9 @@ export async function POST(request: Request) {
     ]) {
       const value = optionalString(body, key);
       if (value !== undefined) formData.set(key, value);
+    }
+    if (optionalBoolean(body, "regionMarkers")) {
+      formData.set("regionMarkers", "on");
     }
     formData.set("imageUrl", infoJsonUrl);
     formData.set("imageWidth", String(info.width));

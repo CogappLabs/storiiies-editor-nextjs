@@ -14,6 +14,7 @@ interface StoryFieldsProps {
     | "attribution"
     | "annotationMode"
     | "infoPosition"
+    | "regionMarkers"
   >;
   titleRef?: Ref<HTMLInputElement>;
   modeLocked?: boolean;
@@ -137,6 +138,23 @@ const StoryFields = ({ story, titleRef, modeLocked }: StoryFieldsProps) => {
           className="text-xs text-cogapp-gray mt-1"
         >
           {strings.infoPositionHint}
+        </p>
+      </div>
+      <div>
+        <label className="flex items-center gap-2 text-sm font-medium">
+          <input
+            type="checkbox"
+            name="regionMarkers"
+            defaultChecked={story?.regionMarkers ?? false}
+            aria-describedby={field("regionMarkersHint")}
+          />
+          {strings.regionMarkers}
+        </label>
+        <p
+          id={field("regionMarkersHint")}
+          className="text-xs text-cogapp-gray mt-1"
+        >
+          {strings.regionMarkersHint}
         </p>
       </div>
     </div>

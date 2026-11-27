@@ -26,7 +26,12 @@ test("creates a story from a IIIF image", async ({ request }) => {
 
   const res = await request.post("/api/v1/stories", {
     headers,
-    data: { title, infoJsonUrl: INFO_JSON, infoPosition: "bottom-left" },
+    data: {
+      title,
+      infoJsonUrl: INFO_JSON,
+      infoPosition: "bottom-left",
+      regionMarkers: true,
+    },
   });
   expect(res.status()).toBe(201);
   storyId = (await res.json()).id;
@@ -46,6 +51,7 @@ test("updates story fields it is sent", async ({ request }) => {
     title,
     author: "API",
     infoPosition: "bottom-left",
+    regionMarkers: true,
   });
 
   const bad = await request.patch(`/api/v1/stories/${storyId}`, {

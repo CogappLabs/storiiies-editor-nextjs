@@ -5,6 +5,7 @@ import {
   findLiveStory,
   handle,
   notFound,
+  optionalBoolean,
   optionalString,
   readBody,
   respond,
@@ -44,6 +45,9 @@ export async function PATCH(request: Request, { params }: Context) {
       throw new BadRequest(errors.invalidField("infoPosition"));
     }
     formData.set("infoPosition", infoPosition ?? story.infoPosition);
+    if (optionalBoolean(body, "regionMarkers") ?? story.regionMarkers) {
+      formData.set("regionMarkers", "on");
+    }
     const annotationMode = optionalString(body, "annotationMode");
     if (annotationMode !== undefined) {
       if (annotationMode !== "region" && annotationMode !== "pin") {

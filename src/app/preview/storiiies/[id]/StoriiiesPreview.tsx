@@ -8,7 +8,13 @@ import { useManifestUrl } from "@/lib/hooks/useManifestUrl";
 import { useStrings } from "@/lib/i18n/LanguageProvider";
 import type { InfoPosition } from "@/lib/viewers";
 
-const StoriiiesPreview = ({ infoPosition }: { infoPosition: InfoPosition }) => {
+const StoriiiesPreview = ({
+  infoPosition,
+  regionMarkers,
+}: {
+  infoPosition: InfoPosition;
+  regionMarkers: boolean;
+}) => {
   const { id } = useParams<{ id: string }>();
   const manifestUrl = useManifestUrl(id);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +44,7 @@ const StoriiiesPreview = ({ infoPosition }: { infoPosition: InfoPosition }) => {
             // follows navigation, so the address is always shareable.
             useUrlHash: true,
             infoPosition,
+            regionMarkers,
           });
         } catch (err) {
           const message = err instanceof Error ? err.message : errorGeneric;
@@ -59,7 +66,14 @@ const StoriiiesPreview = ({ infoPosition }: { infoPosition: InfoPosition }) => {
       const container = document.getElementById("storiiies-viewer");
       if (container) container.innerHTML = "";
     };
-  }, [errorGeneric, errorLoading, infoPosition, manifestUrl, viewerLabel]);
+  }, [
+    errorGeneric,
+    errorLoading,
+    infoPosition,
+    manifestUrl,
+    regionMarkers,
+    viewerLabel,
+  ]);
 
   return (
     <PreviewShell storyId={id} viewer="storiiies">

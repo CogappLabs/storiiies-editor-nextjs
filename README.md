@@ -66,17 +66,17 @@ The project uses `prisma db push` rather than migrations.
 
 `/api/v1` edits stories without the UI. Every request needs `Authorization: Bearer $EDITOR_API_KEY`; with no key set the API is closed. Bodies are JSON, and errors come back as `{ "error": "..." }` with a 4xx or 5xx status.
 
-| Request                                                | Body                                                                                                                          |
-| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| `GET /api/v1/stories`                                  |                                                                                                                               |
-| `POST /api/v1/stories`                                 | `title`, `infoJsonUrl`, optional `author`, `description`, `attribution`, `annotationMode` (`region` or `pin`), `infoPosition` |
-| `GET /api/v1/stories/:id`                              |                                                                                                                               |
-| `PATCH /api/v1/stories/:id`                            | any of the story fields; `null` clears an optional one                                                                        |
-| `DELETE /api/v1/stories/:id`                           | soft delete, restorable from the admin page                                                                                   |
-| `POST /api/v1/stories/:id/annotations`                 | `text`, `x`, `y`, `width`, `height` (image pixels; 0 by 0 for a pin), optional `imageUrls`, `audioUrls`, `youtubeUrl`         |
-| `PATCH /api/v1/stories/:id/annotations/:annotationId`  | any of those; `imageUrls` and `audioUrls` replace the lists                                                                   |
-| `DELETE /api/v1/stories/:id/annotations/:annotationId` |                                                                                                                               |
-| `PUT /api/v1/stories/:id/order`                        | `annotationIds`, every annotation in the new order                                                                            |
+| Request                                                | Body                                                                                                                                                     |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/v1/stories`                                  |                                                                                                                                                          |
+| `POST /api/v1/stories`                                 | `title`, `infoJsonUrl`, optional `author`, `description`, `attribution`, `annotationMode` (`region` or `pin`), `infoPosition`, `regionMarkers` (boolean) |
+| `GET /api/v1/stories/:id`                              |                                                                                                                                                          |
+| `PATCH /api/v1/stories/:id`                            | any of the story fields; `null` clears an optional one                                                                                                   |
+| `DELETE /api/v1/stories/:id`                           | soft delete, restorable from the admin page                                                                                                              |
+| `POST /api/v1/stories/:id/annotations`                 | `text`, `x`, `y`, `width`, `height` (image pixels; 0 by 0 for a pin), optional `imageUrls`, `audioUrls`, `youtubeUrl`                                    |
+| `PATCH /api/v1/stories/:id/annotations/:annotationId`  | any of those; `imageUrls` and `audioUrls` replace the lists                                                                                              |
+| `DELETE /api/v1/stories/:id/annotations/:annotationId` |                                                                                                                                                          |
+| `PUT /api/v1/stories/:id/order`                        | `annotationIds`, every annotation in the new order                                                                                                       |
 
 ```bash
 curl -X POST "$HOST/api/v1/stories" \
