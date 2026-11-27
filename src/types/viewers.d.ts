@@ -7,6 +7,7 @@ declare module "@cogapp/storiiies-viewer" {
     initialAnnotationIndex?: number;
     useUrlHash?: boolean;
     infoPosition?: import("@/lib/viewers").InfoPosition;
+    regionMarkers?: boolean;
   }
 
   export default class StoriiiesViewer {
